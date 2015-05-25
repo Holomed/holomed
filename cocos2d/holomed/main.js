@@ -7,17 +7,12 @@
 
 cc.game.onStart = function(){
     
-    if (cc.sys.isNative) {
-        cc.view.setDesignResolutionSize(800, 450, cc.ResolutionPolicy.FIXED_HEIGHT);
-        cc.view.resizeWithBrowserSize(true);
-    }
+    //cc.view.setDesignResolutionSize(800, 600, cc.ResolutionPolicy.SHOW_ALL);
+    //cc.view.setResolutionPolicy(cc.ResolutionPolicy.NO_BORDER);
+    //cc.view.resizeWithBrowserSize(true);
     
     cc.LoaderScene.preload(g_resources, function () {
-        if(window.sideIndexBar && typeof sideIndexBar.start === 'function'){
-            sideIndexBar.start();
-        }else{
-            cc.director.runScene(new TestController());
-        }
+    	cc.director.runScene(new TestController());
     }, this);
 };
 cc.game.run();

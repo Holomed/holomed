@@ -1,0 +1,19 @@
+{
+    "debugMode"     : 1,
+    "showFPS"       : true,
+    "frameRate"     : 60,
+    "id"            : "gameCanvas",
+    "renderMode"    : 0,
+    "engineDir"     : "../../frameworks/cocos2d-html5/",
+
+    "modules"       : ["cocos2d", "extensions", "external"],
+
+    "jsList"        : [
+        "../src/HolomedBaseLayer/HolomedBaseLayer.js",
+		"../src/resources.js",
+        "../src/src-main.js",
+        "../src/Holomed/HolomedFrontalReflector.js",
+        "../src/Holomed/HolomedRightReflector.js",
+		"../src/Holomed/HolomedLeftReflector.js"
+    ]
+}

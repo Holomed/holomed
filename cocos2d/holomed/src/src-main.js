@@ -89,28 +89,7 @@ var TestController = cc.LayerGradient.extend({
         // globals
         director = cc.director;
         winSize = director.getWinSize();
-
-        // add close menu
-        var closeItem = cc.MenuItemImage.create(s_pathClose, s_pathClose, this.onCloseCallback, this);
-        closeItem.x = winSize.width - 30;
-	    closeItem.y = winSize.height - 30;
-
-        var subItem1 = cc.MenuItemFont.create("Automated Test: Off");
-        subItem1.fontSize = 18;
-        var subItem2 = cc.MenuItemFont.create("Automated Test: On");
-        subItem2.fontSize = 18;
-
-        var toggleAutoTestItem = cc.MenuItemToggle.create(subItem1, subItem2);
-        toggleAutoTestItem.setCallback(this.onToggleAutoTest, this);
-        toggleAutoTestItem.x = winSize.width - toggleAutoTestItem.width / 2 - 10;
-	    toggleAutoTestItem.y = 20;
-        if( autoTestEnabled )
-            toggleAutoTestItem.setSelectedIndex(1);
-
-
-        var menu = cc.Menu.create(closeItem, toggleAutoTestItem);//pmenu is just a holder for the close button
-        menu.x = 0;
-	    menu.y = 0;
+       
 
         // add menu items for tests
         this._itemMenu = cc.Menu.create();//item menu is where all the label goes, and the one gets scrolled
@@ -146,7 +125,6 @@ var TestController = cc.LayerGradient.extend({
         this._itemMenu.x = curPos.x;
 	    this._itemMenu.y = curPos.y;
         this.addChild(this._itemMenu);
-        this.addChild(menu, 1);
 
         // 'browser' can use touches or mouse.
         // The benefit of using 'touches' in a browser, is that it works both with mouse events or touches events
@@ -221,10 +199,25 @@ var testNames = [
         resource:g_sprites,
         platforms: PLATFORM_ALL,
         testScene:function () {
-            return new HolomedScene();
+            return new HolomedFrontalScene();
         }
-    }
-
+    },
+	{
+        title:"Holomed Right App",
+        resource:g_sprites,
+        platforms: PLATFORM_ALL,
+        testScene:function () {
+            return new HolomedRightScene();
+        }
+	},
+	{
+        title:"Holomed Left App",
+        resource:g_sprites,
+        platforms: PLATFORM_ALL,
+        testScene:function () {
+            return new HolomedLeftScene();
+        }
+	}
     //"UserDefaultTest",
     //"ZwoptexTest",
 ];

@@ -13,4 +13,3 @@ var g_resources = [
 
 var g_sprites = [
 ];
-

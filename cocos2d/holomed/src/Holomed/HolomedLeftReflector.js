@@ -30,13 +30,13 @@ var spriteFrameCache = cc.spriteFrameCache;
 
 //------------------------------------------------------------------
 //
-// HolomedReflector
+// HolomedLeftReflector
 //
 // Es el codigo base que va a procesar lo que reciba el monitor 
 // y correrlo.
 //
 //------------------------------------------------------------------
-var HolomedReflector = HolomedBaseLayer.extend({
+var HolomedLeftReflector = HolomedBaseLayer.extend({
     _title:"",
     _subtitle:"",
 
@@ -81,103 +81,66 @@ var socket = io.connect('http://localhost:3000');
 
 //------------------------------------------------------------------
 //
-// HolomedAnimationLayer:
+// HolomedLeftAnimationLayer:
 // 
 // Es aqui donde se hara la logica de mostrar lo que viene del servidor
 // recibiendo las ordenes y las coordenadas para los eventos respectivos
 //
 //------------------------------------------------------------------
-var HolomedAnimationLayer = HolomedReflector.extend({
+var rotateSprite = false;
+
+var HolomedLeftAnimationLayer = HolomedLeftReflector.extend({
 
     _title:"",
+    _num: 0,
     onEnter:function () {
-        //----start10----ctor
         this._super();
-        var texture = cc.textureCache.addImage(s_dragon_animation);
 
-        // manually add frames to the frame cache
-        var frame0 = new cc.SpriteFrame(texture, cc.rect(132 * 0, 132 * 0, 132, 132));
-        var frame1 = new cc.SpriteFrame(texture, cc.rect(132 * 1, 132 * 0, 132, 132));
-        var frame2 = new cc.SpriteFrame(texture, cc.rect(132 * 2, 132 * 0, 132, 132));
-        var frame3 = new cc.SpriteFrame(texture, cc.rect(132 * 3, 132 * 0, 132, 132));
-        var frame4 = new cc.SpriteFrame(texture, cc.rect(132 * 0, 132 * 1, 132, 132));
-        var frame5 = new cc.SpriteFrame(texture, cc.rect(132 * 1, 132 * 1, 132, 132));
+        this.sprite = new cc.Sprite.create("res/Images/prototipo-1/fly0000");
+        this.sprite.x = winSize.width / 2;
+        this.sprite.y = winSize.height / 2;
 
-        //
-        // Animation using Sprite BatchNode
-        //
-        var sprite1 = new cc.Sprite(frame0);
-        sprite1.x = winSize.width / 2;
-        sprite1.y = winSize.height / 2;
-        this.addChild(sprite1);
+        this.addChild(this.sprite);
+        
 
-
-        // Llenar el arreglo afuera 
-        var animFrames = [];
-        animFrames.push(frame0);
-        animFrames.push(frame1);
-        animFrames.push(frame2);
-        animFrames.push(frame3);
-        animFrames.push(frame4);
-        animFrames.push(frame5); 
-
-        var animation = new cc.Animation(animFrames, 0.2);
-        var animate = cc.animate(animation);
-        var delay = cc.delayTime(0.5);
-        var seq = cc.sequence(animate,
-            cc.flipX(false),
-            animate.clone(),
-            delay);
-
-        //sprite.runAction(seq.repeatForever());*/
-        //----end10----
-        var moving = false;
-
-        this._listener1 = cc.EventListener.create({
+        this._listener = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
-                if (!moving){
-                	sprite1.runAction(seq.repeatForever());
-                }
-                else{
-                	sprite1.stopAllActions();
-                }
-                moving = !moving;
-
+                rotateSprite = !rotateSprite;
                 return true;
             }
         });
-        cc.eventManager.addListener(this._listener1, 1);
+        cc.eventManager.addListener(this._listener, 1);
 
         socket.on('update', function (data) {
-		    console.log("Recibio Data: " + data);
 		    var event = new cc.EventCustom("move_sprite_event");
 		    cc.eventManager.dispatchEvent(event);
-		    console.log("Disparo Evento");
 		});
 
-        // Listener tocando el sprite
-        /*var listener1 = cc.EventListener.create({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            onTouchBegan: function (touch, event) {
-            	if (!moving){
-                	sprite1.runAction(seq.repeatForever());
-                }
-                else{
-                	sprite1.stopAllActions();
-                }
-                moving = !moving;
+		this.scheduleUpdate();
 
-                return true;
-            },
-            onTouchEnded: function (touch, event) {
-            }
-        });
-        this.setUserObject(listener1);
+        return true;
+    },
+    update:function (dt) {
+    	if (rotateSprite == true){
+    		this._num++;
+    		var spriteName = "res/Images/prototipo-1/fly";
 
-        cc.eventManager.addListener(listener1, sprite1);*/
+    		if (this._num < 10){
+    			spriteName += "000" + this._num;
+    		} else if (this._num < 100) {
+    			spriteName += "00" + this._num;
+    		} else if ((this._num >= 100) && (this._num <= 361)) {
+    			spriteName += "0" + this._num;
+    		} else if (this._num > 361) {
+    			spriteName += "0000"
+    			this._num = 0;
+    		}
+
+    		this.sprite.initWithFile(spriteName);
+    	}
+       
     },
     onExit:function () {
         this._super();
@@ -185,10 +148,10 @@ var HolomedAnimationLayer = HolomedReflector.extend({
 });
 
 
-var HolomedScene = TestScene.extend({
+var HolomedLeftScene = TestScene.extend({
     runThisTest:function (num) {
         holomedIdx = (num || num == 0) ? (num - 1) : -1;
-        var layer = nextHolomedScene();
+        var layer = nextHolomedLeftScene();
         this.addChild(layer);
 
         director.runScene(this);
@@ -199,13 +162,13 @@ var HolomedScene = TestScene.extend({
 // Flow control
 //
 var arrayOfHolomed = [
-    HolomedAnimationLayer
+    HolomedLeftAnimationLayer
 ];
 
 
 /* Conservar para configuraciones sobre el entorno
 donde se vaya a trabajar */
-var nextHolomedScene = function () {
+var nextHolomedLeftScene = function () {
     holomedIdx++;
     holomedIdx = holomedIdx % arrayOfHolomed.length;
 
@@ -215,7 +178,7 @@ var nextHolomedScene = function () {
 
     return new arrayOfHolomed[holomedIdx ]();
 };
-var previousHolomedScene = function () {
+var previousHolomedLeftScene = function () {
     holomedIdx--;
     if (holomedIdx < 0)
         holomedIdx += arrayOfHolomed.length;
@@ -226,7 +189,7 @@ var previousHolomedScene = function () {
 
     return new arrayOfHolomed[holomedIdx ]();
 };
-var restartHolomedScene = function () {
+var restartHolomedLeftScene = function () {
     return new arrayOfHolomed[holomedIdx ]();
 };
 
