@@ -38,11 +38,7 @@ var PLATFORM_JSB_AND_WEBGL =  PLATFORM_JSB | PLATFORM_HTML5_WEBGL;
 var PLATFORM_ALL = PLATFORM_JSB | PLATFORM_HTML5 | PLATFORM_HTML5_WEBGL | PLATFROM_ANDROID | PLATFROM_IOS;
 var PLATFROM_ANDROID_AND_IOS = PLATFROM_ANDROID | PLATFROM_IOS;
 
-// automation vars
-var autoTestEnabled = autoTestEnabled || false;
-var autoTestCurrentTestName = autoTestCurrentTestName || "N/A";
-
-var TestScene = cc.Scene.extend({
+var HolomedScene = cc.Scene.extend({
     ctor:function (bPortrait) {
         this._super();
         this.init();
@@ -62,13 +58,13 @@ var TestScene = cc.Scene.extend({
     },
     onMainMenuCallback:function () {
         var scene = cc.Scene.create();
-        var layer = new TestController();
+        var layer = new HolomedController();
         scene.addChild(layer);
         var transition = cc.TransitionProgressRadialCCW.create(0.5,scene);
         director.runScene(transition);
     },
 
-    runThisTest:function () {
+    runScene:function () {
         // override me
     }
 
@@ -78,7 +74,7 @@ var TestScene = cc.Scene.extend({
 var LINE_SPACE = 40;
 var curPos = cc.p(0,0);
 
-var TestController = cc.LayerGradient.extend({
+var HolomedController = cc.LayerGradient.extend({
     _itemMenu:null,
     _beginPos:0,
     isMouseDown:false,
@@ -89,13 +85,11 @@ var TestController = cc.LayerGradient.extend({
         // globals
         director = cc.director;
         winSize = director.getWinSize();
-       
 
-        // add menu items for tests
-        this._itemMenu = cc.Menu.create();//item menu is where all the label goes, and the one gets scrolled
+        this._itemMenu = cc.Menu.create();
 
-        for (var i = 0, len = testNames.length; i < len; i++) {
-            var label = cc.LabelTTF.create(testNames[i].title, "Arial", 24);
+        for (var i = 0, len = holomedNamesScenes.length; i < len; i++) {
+            var label = cc.LabelTTF.create(holomedNamesScenes[i].title, "Arial", 24);
             var menuItem = cc.MenuItemLabel.create(label, this.onMenuCallback, this);
             this._itemMenu.addChild(menuItem, i + 10000);
             menuItem.x = winSize.width / 2;
@@ -104,30 +98,28 @@ var TestController = cc.LayerGradient.extend({
             // enable disable
             if ( !cc.sys.isNative) {
                 if( 'opengl' in cc.sys.capabilities ){
-                    menuItem.enabled = (testNames[i].platforms & PLATFORM_HTML5) | (testNames[i].platforms & PLATFORM_HTML5_WEBGL);
+                    menuItem.enabled = (holomedNamesScenes[i].platforms & PLATFORM_HTML5) | (holomedNamesScenes[i].platforms & PLATFORM_HTML5_WEBGL);
                 }else{
-                    menuItem.setEnabled( testNames[i].platforms & PLATFORM_HTML5 );
+                    menuItem.setEnabled( holomedNamesScenes[i].platforms & PLATFORM_HTML5 );
                 }
             } else {
                 if(cc.sys.os == cc.sys.OS_ANDROID)
                 {
-                    menuItem.setEnabled( testNames[i].platforms & ( PLATFORM_JSB | PLATFROM_ANDROID ) );
+                    menuItem.setEnabled( holomedNamesScenes[i].platforms & ( PLATFORM_JSB | PLATFROM_ANDROID ) );
                 }else if(cc.sys.os == cc.sys.OS_IOS|| cc.sys.os == cc.sys.OS_OSX){
-                    menuItem.setEnabled( testNames[i].platforms & ( PLATFORM_JSB | PLATFROM_IOS) );
+                    menuItem.setEnabled( holomedNamesScenes[i].platforms & ( PLATFORM_JSB | PLATFROM_IOS) );
                 }else{
-                    menuItem.setEnabled( testNames[i].platforms & PLATFORM_JSB );
+                    menuItem.setEnabled( holomedNamesScenes[i].platforms & PLATFORM_JSB );
                 }
             }
         }
 
         this._itemMenu.width = winSize.width;
-	    this._itemMenu.height = (testNames.length + 1) * LINE_SPACE;
+	    this._itemMenu.height = (holomedNamesScenes.length + 1) * LINE_SPACE;
         this._itemMenu.x = curPos.x;
 	    this._itemMenu.y = curPos.y;
         this.addChild(this._itemMenu);
 
-        // 'browser' can use touches or mouse.
-        // The benefit of using 'touches' in a browser, is that it works both with mouse events or touches events
         if ('touches' in cc.sys.capabilities)
             cc.eventManager.addListener({
                 event: cc.EventListener.TOUCH_ALL_AT_ONCE,
@@ -155,50 +147,47 @@ var TestController = cc.LayerGradient.extend({
     },
     onEnter:function(){
         this._super();
-	    this._itemMenu.y = TestController.YOffset;
+	    this._itemMenu.y = HolomedController.YOffset;
     },
     onMenuCallback:function (sender) {
-        TestController.YOffset = this._itemMenu.y;
+        HolomedController.YOffset = this._itemMenu.y;
         var idx = sender.getLocalZOrder() - 10000;
-        // get the userdata, it's the index of the menu item clicked
-        // create the test scene and run it
 
-        autoTestCurrentTestName = testNames[idx].title;
-
-        var testCase = testNames[idx];
-        var res = testCase.resource || [];
-        cc.LoaderScene.preload(res, function () {
-            var scene = testCase.testScene();
-            if (scene) {
-                scene.runThisTest();
-            }
-        }, this);
+        var holomedCase = holomedNamesScenes[idx];
+        var res = holomedCase.resource || [];
+        if (!(holomedCase.title == "All Faces App")){
+        	cc.LoaderScene.preload(res, function () {
+            	var scene = holomedCase.Scene();
+            	if (scene) {
+                	scene.runScene();
+            	}
+        	}, this);
+        } else {
+        	console.log("Lo logre");
+        }
     },
     onCloseCallback:function () {
         window.history && window.history.go(-1);
     },
-    onToggleAutoTest:function() {
-        autoTestEnabled = !autoTestEnabled;
-    },
 
-    moveMenu:function(delta) {
+/*    moveMenu:function(delta) {
         var newY = this._itemMenu.y + delta.y;
         if (newY < 0 )
             newY = 0;
 
-        if( newY > ((testNames.length + 1) * LINE_SPACE - winSize.height))
-            newY = ((testNames.length + 1) * LINE_SPACE - winSize.height);
+        if( newY > ((holomedNamesScenes.length + 1) * LINE_SPACE - winSize.height))
+            newY = ((holomedNamesScenes.length + 1) * LINE_SPACE - winSize.height);
 
 	    this._itemMenu.y = newY;
-    }
+    }*/
 });
-TestController.YOffset = 0;
-var testNames = [
+HolomedController.YOffset = 0;
+var holomedNamesScenes = [
     {
         title:"Holomed Frontal App",
         resource:g_sprites,
         platforms: PLATFORM_ALL,
-        testScene:function () {
+        Scene:function () {
             return new HolomedFrontalScene();
         }
     },
@@ -206,7 +195,7 @@ var testNames = [
         title:"Holomed Right App",
         resource:g_sprites,
         platforms: PLATFORM_ALL,
-        testScene:function () {
+        Scene:function () {
             return new HolomedRightScene();
         }
 	},
@@ -214,10 +203,16 @@ var testNames = [
         title:"Holomed Left App",
         resource:g_sprites,
         platforms: PLATFORM_ALL,
-        testScene:function () {
+        Scene:function () {
             return new HolomedLeftScene();
         }
-	}
-    //"UserDefaultTest",
-    //"ZwoptexTest",
+	},
+	{
+        title:"Holomed All Faces App",
+        resource:g_sprites,
+        platforms: PLATFORM_ALL,
+        Scene:function () {
+        	return new HolomedAllScene();
+        }
+	},
 ];

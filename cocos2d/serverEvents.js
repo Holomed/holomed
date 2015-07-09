@@ -67,6 +67,7 @@ app.get('/test', function(req, res) {
 
 app.get('/action', function(req, res) {
     sockets.emit('update', "update!");
+    console.log("Emitio");
     res.send('Action Received Successfully!');
 });
 

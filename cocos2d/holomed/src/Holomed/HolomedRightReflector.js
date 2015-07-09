@@ -49,35 +49,9 @@ var HolomedRightReflector = HolomedBaseLayer.extend({
 
     },
 
-    onRestartCallback:function (sender) {
-        var s = new HolomedScene();
-        s.addChild(restartHolomedScene());
-        director.runScene(s);
-    },
-
-    onNextCallback:function (sender) {
-        var s = new HolomedScene();
-        s.addChild(nextHolomedScene());
-        director.runScene(s);
-    },
-
-    onBackCallback:function (sender) {
-        var s = new HolomedScene();
-        s.addChild(previousHolomedScene());
-        director.runScene(s);
-    },
-
-    // automation
-    numberOfPendingTests:function () {
-        return ( (arrayOfHolomed.length - 1) - holomedIdx );
-    },
-
-    getTestNumber:function () {
-        return holomedIdx;
-    }
 });
 
-//var socket = io.connect('http://localhost:3000');
+var socket = io.connect('http://192.168.0.101:3000');
 
 //------------------------------------------------------------------
 //
@@ -87,30 +61,35 @@ var HolomedRightReflector = HolomedBaseLayer.extend({
 // recibiendo las ordenes y las coordenadas para los eventos respectivos
 //
 //------------------------------------------------------------------
+
 var HolomedRightAnimationLayer = HolomedRightReflector.extend({
 
     _title:"",
+    _num: 0,
     onEnter:function () {
-        //----start10----ctor
         this._super();
-        var texture = cc.textureCache.addImage(s_dragon_animation);
 
-        // manually add frames to the frame cache
-        var frame0 = new cc.SpriteFrame(texture, cc.rect(132 * 0, 132 * 0, 132, 132));
-        var frame1 = new cc.SpriteFrame(texture, cc.rect(132 * 1, 132 * 0, 132, 132));
-        var frame2 = new cc.SpriteFrame(texture, cc.rect(132 * 2, 132 * 0, 132, 132));
-        var frame3 = new cc.SpriteFrame(texture, cc.rect(132 * 3, 132 * 0, 132, 132));
-        var frame4 = new cc.SpriteFrame(texture, cc.rect(132 * 0, 132 * 1, 132, 132));
-        var frame5 = new cc.SpriteFrame(texture, cc.rect(132 * 1, 132 * 1, 132, 132));
+        var texture = cc.textureCache.addImage(s_baby_rotation);
 
-        //
-        // Animation using Sprite BatchNode
-        //
-        var sprite1 = new cc.Sprite(frame0);
-        sprite1.x = winSize.width / 2;
-        sprite1.y = winSize.height / 2;
-        this.addChild(sprite1);
+		var frame0 = new cc.SpriteFrame(texture, cc.rect(4680, 0, 353, 279));
+        var frame1 = new cc.SpriteFrame(texture, cc.rect(5254, 0, 353, 279));
+        var frame2 = new cc.SpriteFrame(texture, cc.rect(5799, 0, 353, 279));
+        var frame3 = new cc.SpriteFrame(texture, cc.rect(159, 0, 353, 279));
+        var frame4 = new cc.SpriteFrame(texture, cc.rect(656, 0, 353, 279));
+        var frame5 = new cc.SpriteFrame(texture, cc.rect(1141, 0, 353, 279));
+        var frame6 = new cc.SpriteFrame(texture, cc.rect(1606, 0, 353, 279));
+        var frame7 = new cc.SpriteFrame(texture, cc.rect(2094, 0, 353, 279));
+        var frame8 = new cc.SpriteFrame(texture, cc.rect(2585, 0, 353, 279));
+        var frame9 = new cc.SpriteFrame(texture, cc.rect(3068, 0, 353, 279));
+        var frame10 = new cc.SpriteFrame(texture, cc.rect(3568, 0, 353, 279));
+        var frame11 = new cc.SpriteFrame(texture, cc.rect(4099, 0, 353, 279));
 
+        var sprite = new cc.Sprite(frame0);
+        //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
+        sprite.x = winSize.width / 2;
+        sprite.y = winSize.height / 2;
+
+        this.addChild(sprite);
 
         // Llenar el arreglo afuera 
         var animFrames = [];
@@ -120,64 +99,49 @@ var HolomedRightAnimationLayer = HolomedRightReflector.extend({
         animFrames.push(frame3);
         animFrames.push(frame4);
         animFrames.push(frame5); 
+        animFrames.push(frame6); 
+        animFrames.push(frame7); 
+        animFrames.push(frame8);
+        animFrames.push(frame9);
+        animFrames.push(frame10);
+        animFrames.push(frame11);
 
         var animation = new cc.Animation(animFrames, 0.2);
         var animate = cc.animate(animation);
-        var delay = cc.delayTime(0.5);
+        var delay = cc.delayTime(0);
         var seq = cc.sequence(animate,
             cc.flipX(false),
             animate.clone(),
             delay);
 
-        //sprite.runAction(seq.repeatForever());*/
-        //----end10----
+        
         var moving = false;
 
-        this._listener1 = cc.EventListener.create({
+        this._listener = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
-                if (!moving){
-                	sprite1.runAction(seq.repeatForever());
+            	if (!moving){
+                	sprite.runAction(seq.repeatForever());
                 }
                 else{
-                	sprite1.stopAllActions();
+                	sprite.stopAllActions();
                 }
                 moving = !moving;
 
                 return true;
             }
         });
-        cc.eventManager.addListener(this._listener1, 1);
+        cc.eventManager.addListener(this._listener, 1);
 
-        /*socket.on('update', function (data) {
-		    console.log("Recibio Data: " + data);
+        socket.on('update', function (data) {
 		    var event = new cc.EventCustom("move_sprite_event");
 		    cc.eventManager.dispatchEvent(event);
-		    console.log("Disparo Evento");
-		});*/
+		});
 
-        // Listener tocando el sprite
-        /*var listener1 = cc.EventListener.create({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            onTouchBegan: function (touch, event) {
-            	if (!moving){
-                	sprite1.runAction(seq.repeatForever());
-                }
-                else{
-                	sprite1.stopAllActions();
-                }
-                moving = !moving;
+		this.scheduleUpdate();
 
-                return true;
-            },
-            onTouchEnded: function (touch, event) {
-            }
-        });
-        this.setUserObject(listener1);
-
-        cc.eventManager.addListener(listener1, sprite1);*/
+        return true;
     },
     onExit:function () {
         this._super();
@@ -185,48 +149,11 @@ var HolomedRightAnimationLayer = HolomedRightReflector.extend({
 });
 
 
-var HolomedRightScene = TestScene.extend({
-    runThisTest:function (num) {
-        holomedIdx = (num || num == 0) ? (num - 1) : -1;
-        var layer = nextHolomedRightScene();
+var HolomedRightScene = HolomedScene.extend({
+    runScene:function (num) {
+        var layer = new HolomedRightAnimationLayer();
         this.addChild(layer);
 
         director.runScene(this);
     }
 });
-
-//
-// Flow control
-//
-var arrayOfHolomed = [
-    HolomedRightAnimationLayer
-];
-
-
-/* Conservar para configuraciones sobre el entorno
-donde se vaya a trabajar */
-var nextHolomedRightScene = function () {
-    holomedIdx++;
-    holomedIdx = holomedIdx % arrayOfHolomed.length;
-
-    if(window.sideIndexBar){
-        holomedIdx = window.sideIndexBar.changeTest(holomedIdx, 36);
-    }
-
-    return new arrayOfHolomed[holomedIdx ]();
-};
-var previousHolomedRightScene = function () {
-    holomedIdx--;
-    if (holomedIdx < 0)
-        holomedIdx += arrayOfHolomed.length;
-
-    if(window.sideIndexBar){
-        holomedIdx = window.sideIndexBar.changeTest(holomedIdx, 36);
-    }
-
-    return new arrayOfHolomed[holomedIdx ]();
-};
-var restartHolomedRightScene = function () {
-    return new arrayOfHolomed[holomedIdx ]();
-};
-

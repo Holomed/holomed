@@ -30,13 +30,13 @@ var spriteFrameCache = cc.spriteFrameCache;
 
 //------------------------------------------------------------------
 //
-// HolomedFrontalReflector
+// HolomedAllReflector
 //
-// Es el codigo base que va a procesar lo que reciba el monitor 
-// y correrlo.
+// Es el codigo base que va a procesar lo que reciba el monitor con
+// todas las caras y correrlo.
 //
 //------------------------------------------------------------------
-var HolomedFrontalReflector = HolomedBaseLayer.extend({
+var HolomedAllReflector = HolomedBaseLayer.extend({
     _title:"",
     _subtitle:"",
 
@@ -55,16 +55,14 @@ var socket = io.connect('http://192.168.0.101:3000');
 
 //------------------------------------------------------------------
 //
-// HolomedFrontalAnimationLayer:
+// HolomedAllAnimationLayer:
 // 
 // Es aqui donde se hara la logica de mostrar lo que viene del servidor
 // recibiendo las ordenes y las coordenadas para los eventos respectivos
 //
 //------------------------------------------------------------------
 
-var rotateSprite = false;
-
-var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
+var HolomedAllAnimationLayer = HolomedAllReflector.extend({
 
     _title:"",
     _num: 0,
@@ -86,34 +84,98 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
         var frame10 = new cc.SpriteFrame(texture, cc.rect(5254, 0, 353, 279));
         var frame11 = new cc.SpriteFrame(texture, cc.rect(5799, 0, 353, 279));
 
-        var sprite = new cc.Sprite(frame0);
-        //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
-        sprite.x = winSize.width / 2;
-        sprite.y = winSize.height / 2;
+        console.log(winSize.width);
+        console.log(winSize.height);
 
-        this.addChild(sprite);
+        var spriteFrontal = new cc.Sprite(frame0);
+        //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
+        spriteFrontal.x = winSize.width / 2;
+        spriteFrontal.y = (winSize.height / 2) + (winSize.height / 4);
+        spriteFrontal.setScale(0.7);
+
+
+        var spriteRight = new cc.Sprite(frame9);
+        spriteRight.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
+        spriteRight.y = winSize.height / 2;
+        spriteRight.setScale(0.7);
+        spriteRight.setRotation(270);
+
+        var spriteLeft = new cc.Sprite(frame3)
+        spriteLeft.x = (winSize.width / 2) - (winSize.width / 4) - 45;
+        spriteLeft.y = winSize.height / 2;
+        spriteLeft.setScale(0.7);
+        spriteLeft.setRotation(90);
+
+        this.addChild(spriteFrontal);
+        this.addChild(spriteRight);
+        this.addChild(spriteLeft);
+
+        var delay = cc.delayTime(0);
 
         // Llenar el arreglo afuera 
-        var animFrames = [];
-        animFrames.push(frame0);
-        animFrames.push(frame1);
-        animFrames.push(frame2);
-        animFrames.push(frame3);
-        animFrames.push(frame4);
-        animFrames.push(frame5); 
-        animFrames.push(frame6); 
-        animFrames.push(frame7); 
-        animFrames.push(frame8);
-        animFrames.push(frame9);
-        animFrames.push(frame10);
-        animFrames.push(frame11);
+        var animFramesFrontal = [];
+        animFramesFrontal.push(frame0);
+        animFramesFrontal.push(frame1);
+        animFramesFrontal.push(frame2);
+        animFramesFrontal.push(frame3);
+        animFramesFrontal.push(frame4);
+        animFramesFrontal.push(frame5); 
+        animFramesFrontal.push(frame6); 
+        animFramesFrontal.push(frame7); 
+        animFramesFrontal.push(frame8);
+        animFramesFrontal.push(frame9);
+        animFramesFrontal.push(frame10);
+        animFramesFrontal.push(frame11);
 
-        var animation = new cc.Animation(animFrames, 0.2);
-        var animate = cc.animate(animation);
-        var delay = cc.delayTime(0);
-        var seq = cc.sequence(animate,
+        var animationFrontal = new cc.Animation(animFramesFrontal, 0.2);
+        var animateFrontal = cc.animate(animationFrontal);
+        var seqFrontal = cc.sequence(animateFrontal,
             cc.flipX(false),
-            animate.clone(),
+            animateFrontal.clone(),
+            delay);
+
+
+        var animFramesRight = [];
+        animFramesRight.push(frame9);
+        animFramesRight.push(frame10);
+        animFramesRight.push(frame11);
+        animFramesRight.push(frame0);
+        animFramesRight.push(frame1);
+        animFramesRight.push(frame2); 
+        animFramesRight.push(frame3); 
+        animFramesRight.push(frame4); 
+        animFramesRight.push(frame5);
+        animFramesRight.push(frame6);
+        animFramesRight.push(frame7);
+        animFramesRight.push(frame8);
+
+        var animationRight = new cc.Animation(animFramesRight, 0.2);
+        var animateRight = cc.animate(animationRight);
+        var seqRight = cc.sequence(animateRight,
+            cc.flipX(false),
+            animateRight.clone(),
+            delay);
+
+
+        var animFramesLeft = [];
+        animFramesLeft.push(frame3);
+        animFramesLeft.push(frame4);
+        animFramesLeft.push(frame5);
+        animFramesLeft.push(frame6);
+        animFramesLeft.push(frame7);
+        animFramesLeft.push(frame8); 
+        animFramesLeft.push(frame9); 
+        animFramesLeft.push(frame10); 
+        animFramesLeft.push(frame11);
+        animFramesLeft.push(frame0);
+        animFramesLeft.push(frame1);
+        animFramesLeft.push(frame2);
+
+        var animationLeft = new cc.Animation(animFramesLeft, 0.2);
+        var animateLeft = cc.animate(animationLeft);
+        var seqLeft = cc.sequence(animateLeft,
+            cc.flipX(false),
+            animateLeft.clone(),
             delay);
 
         //this.sprite.runAction(seq.repeatForever());
@@ -125,10 +187,14 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             eventName: "move_sprite_event",
             callback: function(event){
             	if (!moving){
-                	sprite.runAction(seq.repeatForever());
+                	spriteFrontal.runAction(seqFrontal.repeatForever());
+                	spriteRight.runAction(seqRight.repeatForever());
+                	spriteLeft.runAction(seqLeft.repeatForever());
                 }
                 else{
-                	sprite.stopAllActions();
+                	spriteFrontal.stopAllActions();
+                	spriteRight.stopAllActions();
+                	spriteLeft.stopAllActions();
                 }
                 moving = !moving;
 
@@ -152,9 +218,9 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
 });
 
 
-var HolomedFrontalScene = HolomedScene.extend({
+var HolomedAllScene = HolomedScene.extend({
     runScene:function (num) {
-   	    var layer = new HolomedFrontalAnimationLayer();
+   	    var layer = new HolomedAllAnimationLayer();
         this.addChild(layer);
 
         director.runScene(this);

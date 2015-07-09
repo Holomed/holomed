@@ -12,6 +12,7 @@
         "src/HolomedBaseLayer/HolomedBaseLayer.js",
 		"src/resources.js",
         "src/src-main.js",
+        "src/Holomed/HolomedAllReflector.js",
         "src/Holomed/HolomedFrontalReflector.js",
         "src/Holomed/HolomedRightReflector.js",
 		"src/Holomed/HolomedLeftReflector.js"
