@@ -9,11 +9,20 @@
 */
 
 var express = require('express');
+var bParser = require('body-parser');
+
+var urlencodedParser = bParser.urlencoded({ extended: false });
+
 var app = express();
+
 var io = require('socket.io');
 var path = require('path');
 var sys = require('sys');
 var exec = require('child_process').exec;
+
+var authentication = require('./authentication.js');
+var passport = authentication.passport;
+
 
 function runNI(error, stdout, stderr){
 	console.log("Opening Holomed Monitor");
@@ -32,11 +41,23 @@ app.use('/lib', express.static(__dirname + '/holomed/lib'));
 app.use('/project', express.static(__dirname + '/holomed/project') );
 app.use('/res', express.static(__dirname + '/holomed/res'));
 app.use('/src', express.static(__dirname + '/holomed/src'));
-app.use('/admin', express.static(__dirname + '/holomed/admin') );
+app.use('/admin/js', express.static(__dirname + '/holomed/admin/js') );
+app.use('/admin/css', express.static(__dirname + '/holomed/admin/css') );
+app.use('/js', express.static(__dirname + '/holomed/admin/js') );
+app.use('/css', express.static(__dirname + '/holomed/admin/css') );
 app.use('/main.js', express.static(__dirname + '/holomed/main.js'));
 app.use('/project.json', express.static(__dirname + '/holomed/project.json'));
 app.use('/frameworks', express.static(__dirname + '/frameworks') );
 app.use('/socketio', express.static(__dirname + '/frameworks/cocos2d-html5/external/socketio') );
+
+app.use(authentication.expressSession({
+	secret: 'holomed',
+	resave: true,
+	saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 var server = app.listen(3000, function() {
     console.log('Server Listening...');
@@ -44,15 +65,45 @@ var server = app.listen(3000, function() {
 
 var sockets = io.listen(server, { origins: '*:*' });
 
+var isAuthenticated = function (req, res, next) {
+  if (req.isAuthenticated())
+    return next();
+  res.redirect('/login');
+}
+
 app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, 'holomed', 'index.html'));
 });
 
-app.get('/right', function(req, res) {
-    res.sendFile(path.join(__dirname, 'holomed', 'indexRight.html'));
+app.get('/login', function(req, res, next) {
+    res.sendFile(path.join(__dirname, 'holomed', 'admin/login.html'));
+	//res.render('login', {user: req.user});
 });
 
-app.get('/admin', function(req, res) {
+app.post('/login', urlencodedParser, function(req, res, next) {
+	passport.authenticate('holomed-auth', function(err, user, info) {
+		if (err) { return next(err); }
+		if (!user) {
+    		res.redirect('/loginFailure');
+    	}
+    
+    	req.logIn(user, function(err) {
+    		if (err) { return next(err); }
+		    return res.redirect('/admin');
+    	});
+	})(req, res, next);
+});
+
+app.get('/loginFailure', function(req, res, next) {
+  res.send('Failed to authenticate');
+});
+ 
+app.get('/loginSuccess', function(req, res, next) {
+  res.send('Successfully authenticated');
+});
+
+
+app.get('/admin', isAuthenticated, function(req, res) {
     res.sendFile(path.join(__dirname, 'holomed', 'admin/index.html'));
 });
 
@@ -75,6 +126,7 @@ sockets.on('connection', function (socket) {
     console.log('Element connected');
 
 	socket.on('kinect-received', function(data){
-		socket.broadcast.emit('update-image', 'update!!');
+		console.log("Listo Nojoda");
+		//socket.broadcast.emit('update-image', 'update!!');
 	});
 });

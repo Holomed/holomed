@@ -51,7 +51,7 @@ var HolomedFrontalReflector = HolomedBaseLayer.extend({
 
 });
 
-var socket = io.connect('http://192.168.0.101:3000');
+var socket = io.connect('http://127.0.0.1:3000');
 
 //------------------------------------------------------------------
 //

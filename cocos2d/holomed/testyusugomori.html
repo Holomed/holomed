@@ -1,0 +1,57 @@
+<!html>
+<head>
+<script src="http://localhost:3000/streamed/jquery-2.1.3.min.js"></script>
+<script type="text/javascript" src="http://yusugomori.github.com/api/jquery/plugins/jquery.imotion.js"></script>
+<script>
+global = false;
+</script>
+<script>
+function recursiveMotions(){
+	$("#demo-img").attr("src","http://localhost:3000/streamed/screenshots/screenshot0.png")
+	var imgs = [];  // Array for stop motion images
+	d = new Date();
+	
+	for(var i=0; i<100; i++) imgs.push("http://localhost:3000/streamed/screenshots/screenshot"+i+".png?"+d.getTime()); // push images (example)
+	console.log(global);
+	if (global != true){
+		$('#demo-img').imotion({imgs: imgs}).done(function(){recursiveMotions() });
+	}
+}
+$(function(){
+//var imgs = [];  // Array for stop motion images
+//for(var i=0; i<100; i++) imgs.push("http://localhost:3000/streamed/screenshots/screenshot"+i+".png"); // push images (example)
+
+recursiveMotions();
+$('body').on('click', function(){
+	global = !global;
+});
+
+// with options
+//var dfd = $.Deferred();
+//$('body').on('click', function(){
+//  dfd.resolve();
+//});
+
+/*$('#demo-img').imotion({
+  imgs: imgs,
+  dfd: dfd,
+  fps: 20,
+  wait: 0,
+  skipFirst: true
+}).done(function(){ $('#demo-img').imotion(imgs); });*/
+/*
+
+// chain actions
+//   jquery.imotion.js returns $.Deferred() object ( .promise() ),
+//   so you can chain actions with .then() or .fail() etc.
+$('#demo-img').imotion(imgs).then(function(){
+  /* triggered after animation
+	console.log("repeat");
+}).fail(function(){
+  /* triggered when animation fails 
+});*/});
+</script>
+</head>
+<body>
+<img id="demo-img" />
+</body>

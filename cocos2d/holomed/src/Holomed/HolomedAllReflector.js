@@ -51,7 +51,7 @@ var HolomedAllReflector = HolomedBaseLayer.extend({
 
 });
 
-var socket = io.connect('http://192.168.0.101:3000');
+var socket = io.connect('http://127.0.0.1:3000');
 
 //------------------------------------------------------------------
 //
@@ -90,21 +90,22 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
         var spriteFrontal = new cc.Sprite(frame0);
         //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
         spriteFrontal.x = winSize.width / 2;
-        spriteFrontal.y = (winSize.height / 2) + (winSize.height / 4);
+        spriteFrontal.y = (winSize.height / 2) + (winSize.height / 4) - 20;
         spriteFrontal.setScale(0.7);
+        spriteFrontal.setRotation(180);
 
 
-        var spriteRight = new cc.Sprite(frame9);
-        spriteRight.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
-        spriteRight.y = winSize.height / 2;
-        spriteRight.setScale(0.7);
-        spriteRight.setRotation(270);
-
-        var spriteLeft = new cc.Sprite(frame3)
+        var spriteLeft = new cc.Sprite(frame9);
         spriteLeft.x = (winSize.width / 2) - (winSize.width / 4) - 45;
-        spriteLeft.y = winSize.height / 2;
+        spriteLeft.y = winSize.height / 2 - 65;
         spriteLeft.setScale(0.7);
         spriteLeft.setRotation(90);
+        
+        var spriteRight = new cc.Sprite(frame3);
+        spriteRight.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
+        spriteRight.y = winSize.height / 2 - 65;
+        spriteRight.setScale(0.7);
+        spriteRight.setRotation(270);
 
         this.addChild(spriteFrontal);
         this.addChild(spriteRight);
@@ -135,21 +136,21 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             delay);
 
 
-        var animFramesRight = [];
-        animFramesRight.push(frame9);
-        animFramesRight.push(frame10);
-        animFramesRight.push(frame11);
-        animFramesRight.push(frame0);
-        animFramesRight.push(frame1);
-        animFramesRight.push(frame2); 
-        animFramesRight.push(frame3); 
-        animFramesRight.push(frame4); 
-        animFramesRight.push(frame5);
-        animFramesRight.push(frame6);
-        animFramesRight.push(frame7);
-        animFramesRight.push(frame8);
+        var animFramesLeft = [];
+        animFramesLeft.push(frame9);
+        animFramesLeft.push(frame10);
+        animFramesLeft.push(frame11);
+        animFramesLeft.push(frame0);
+        animFramesLeft.push(frame1);
+        animFramesLeft.push(frame2); 
+        animFramesLeft.push(frame3); 
+        animFramesLeft.push(frame4); 
+        animFramesLeft.push(frame5);
+        animFramesLeft.push(frame6);
+        animFramesLeft.push(frame7);
+        animFramesLeft.push(frame8);
 
-        var animationRight = new cc.Animation(animFramesRight, 0.2);
+        var animationRight = new cc.Animation(animFramesLeft, 0.2);
         var animateRight = cc.animate(animationRight);
         var seqRight = cc.sequence(animateRight,
             cc.flipX(false),
@@ -157,19 +158,19 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             delay);
 
 
-        var animFramesLeft = [];
-        animFramesLeft.push(frame3);
-        animFramesLeft.push(frame4);
-        animFramesLeft.push(frame5);
-        animFramesLeft.push(frame6);
-        animFramesLeft.push(frame7);
-        animFramesLeft.push(frame8); 
-        animFramesLeft.push(frame9); 
-        animFramesLeft.push(frame10); 
-        animFramesLeft.push(frame11);
-        animFramesLeft.push(frame0);
-        animFramesLeft.push(frame1);
-        animFramesLeft.push(frame2);
+        var animFramesRight = [];
+        animFramesRight.push(frame3);
+        animFramesRight.push(frame4);
+        animFramesRight.push(frame5);
+        animFramesRight.push(frame6);
+        animFramesRight.push(frame7);
+        animFramesRight.push(frame8); 
+        animFramesRight.push(frame9); 
+        animFramesRight.push(frame10); 
+        animFramesRight.push(frame11);
+        animFramesRight.push(frame0);
+        animFramesRight.push(frame1);
+        animFramesRight.push(frame2);
 
         var animationLeft = new cc.Animation(animFramesLeft, 0.2);
         var animateLeft = cc.animate(animationLeft);
