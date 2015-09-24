@@ -19,12 +19,20 @@
 	<body class="bg-dark-navy">
 		<div class="form-box" id="login-box">
     		<div class="header">HOLOMED<br>Iniciar Sesi&oacute;n</div>
-	        <form action="/testing" method="post">
+	        <form action="/login" method="post">
 	            <div class="body bg-gray">
-					<div class="alert alert-danger alert-dismissible" role="alert" style="display:none">
+	            	{% if successMessage %}
+					<div class="alert alert-success alert-dismissible" role="alert">
+		    			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					    {{ successMessage }}
+					</div>
+					{% endif %}
+					{% if error %}
+					<div class="alert alert-danger alert-dismissible" role="alert">
 		    			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					    <strong>¡Error!</strong> Su nombre de usuario y/o contraseña son incorrectos.
 					</div>
+					{% endif %}
             	    <div class="form-group">
             	       <input type="text" name="username" id="username" class="form-control" placeholder="Nombre de Usuario" required/>
             	    </div>
@@ -34,7 +42,7 @@
             	</div>
             	<div class="footer">
             	    <button type="submit" class="btn btn-info btn-block">Entrar</button>
-            	    <p class="text-center">¿Todav&iacute;a no tienes cuenta?.<br><a href="#">Haz click aqu&iacute; para crearla</a></p>
+            	    <p class="text-center">¿Todav&iacute;a no tienes cuenta?.<br><a href="register">Haz click aqu&iacute; para crearla</a></p>
             	</div>
 	        </form>
 		</div>

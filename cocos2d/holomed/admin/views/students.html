@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="box span12">
+	<div class="box-header" data-original-title="">
+		<h2><i class="halflings-icon white user"></i><span class="break"></span>Estudiantes Registrados</h2>
+	</div>
+	<div class="box-content">
+		<table class="table table-condensed">
+			  <thead>
+				  <tr>
+					  <th>Nombre de Estudiante</th>
+					  <th>Fecha de Registro</th>
+					  <th>Programa de Estudio</th>
+					  <th>Fase</th>                                          
+					  <th>Puntuaci&oacute;n acumulada</th>
+					  <th>Acciones</th>
+				  </tr>
+			  </thead>   
+			  <tbody>
+			    {% for student in students %}
+				<tr>
+					<td>{{ student.fullName }}</td>
+					<td class="center">2012/01/01</td>
+					<td class="center">Parto Eut&oacute;cico Simple</td>
+					<td class="center">0</td>
+					<td class="center">0</td>
+					<td class="center ">
+					<a href="#">
+						<i class="halflings-icon zoom-in"></i>  
+					</a>
+					<a href="#">
+						<i class="halflings-icon edit"></i>  
+					</a>
+					<a href="#">
+						<i class="halflings-icon trash"></i> 
+					</a>
+				</td>
+				</tr>
+				{% endfor %}
+				<tr id="tr-form" style="display:none">
+					<form id="student-form" action="students" method="post">
+						<td><input type="text" name="fullName" id="fullName" placeholder="Nombre de Estudiante"/></td>
+						<td id="date-register"></td>
+						<td>
+							<select id="programName" name="programName">
+								<option value="Parto Eutocico Simple">Parto Eutocico Simple</option>
+							</select>
+						</td>
+						<td>
+							<select id="phase" name="phase">
+							{% for phase in phases %}
+								<option value="{{ phase.phase_id }}">{{ phase.phaseName }}</option>
+							{% endfor %}
+							</select>
+						</td>
+						<td>0</td>
+						<td>
+							<a id="accept-add-student" href="#">
+								<i class="halflings-icon ok"></i> 
+							</a>
+							<a id="cancel-add-student" href="#">
+								<i class="halflings-icon remove"></i> 
+							</a>
+						</td>
+					</form>
+				</tr>
+			  </tbody>
+		 </table>  
+		 <div class="center">
+		 	<a id="add-student" class="btn btn-info" href="#">
+				<i class="halflings-icon white plus"></i> Nuevo Estudiante 
+			</a>
+		 </div>
+	</div>			
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+	$("#add-student").click(function(){
+		var fullDate = new Date();
+		var twoDigitMonth = fullDate.getMonth()+"";if(twoDigitMonth.length==1)	twoDigitMonth="0" +twoDigitMonth;
+		var twoDigitDate = fullDate.getDate()+"";if(twoDigitDate.length==1)	twoDigitDate="0" +twoDigitDate;
+		var currentDate = twoDigitDate + "/" + twoDigitMonth + "/" + fullDate.getFullYear();
+
+		$("#date-register").html(currentDate);
+		$("#tr-form").show();
+	});
+
+	$("#cancel-add-student").click(function(){
+		$("#fullName").val("");
+		$("#tr-form").hide();
+	});
+
+	$("#accept-add-student").click(function(){
+		$("#student-form").submit();
+	});
+</script>
+{% endblock %}

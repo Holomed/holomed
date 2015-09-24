@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row-fluid">
+    <div class="span12">
+		<h1>Preguntas y Respuestas</h1>
+		<h2>Programa: Parto Eutocico Simple</h2>		
+		{% for phase in phases %}
+		<a href="#" class="phase" data-id="{{ phase.phase_id }}"><div class="priority info"><span>{{ phase.phaseName }}</span></div></a>
+		<ul style="list-style-type: none; display: none;">
+			<li class="task info">
+				<div class="desc">
+					<div class="title">No tiene ninguna pregunta en esta fase</div>
+					<div>Si quiere agregar una pregunta, haga click <a href="#">aqu&iacute;</a></div>
+				</div>
+			</li>
+		</ul>
+		{% endfor %}
+		<div class="clearfix"></div>
+		<br><br>		
+		<div class="center">
+		 	<a class="btn btn-info" href="#">
+				<i class="halflings-icon white plus"></i> Agregar Pregunta 
+			</a>
+		 </div>
+	</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+	$("a.phase").click(function(){
+		var phaseId = $(this).attr("data-id");
+		var ul = $(this).next("ul");
+
+		var data = { _id : phaseId};
+
+		if ($(ul).css("display") == "none"){
+			$.ajax({
+				url: "getPhaseQuestions",
+					data: data,
+		            type: 'GET',
+		            success: function(receivedData){
+		            	$(ul).html("");
+		            	var questionHtml = '';
+		     	       	if (receivedData.length > 0){
+		     	       		$(receivedData).each(function(index, question){
+		     	       			questionHtml = '<li class="task info"><div class="desc"><div class="title">'+ question.text +'</div><div>'+ question.answer +'</div></div></li>';
+		     	       			$(ul).append(questionHtml);
+		     	       		});
+		            	} else {
+		            		questionHtml = '<li class="task info"><div class="desc"><div class="title">No tiene ninguna pregunta en esta fase</div><div>Si quiere agregar una pregunta, haga click <a href="#">aqu&iacute;</a></div></div></li>';
+		            		$(ul).html(questionHtml);
+		            	}
+		            	
+		            	$(ul).show();
+		            }            
+	        });
+		} else {
+			$(ul).hide();
+		}
+	});
+</script>
+{% endblock %}

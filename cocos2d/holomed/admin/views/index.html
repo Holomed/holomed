@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}			
+<div class="row-fluid">
+	<div class="box black span6 noMargin" ontablet="span12" ondesktop="span6">
+		<div class="box-header">
+			<h2><i class="halflings-icon white book"></i>    Leyenda</h2>
+		</div>
+		<div class="box-content">
+			<div class="todo metro">
+				<ul class="todo-list">
+					<li class="red">
+						Lorem Ipsum 
+						<strong></strong>
+					</li>
+					<li class="green">
+						Lorem Ipsum
+						<strong></strong>
+					</li>
+					<li class="blue">
+						Lorem Ipsum
+						<strong></strong>
+					</li>
+				</ul>
+			</div>	
+		</div>
+	</div>
+	
+	<div class="span6 box black" onTablet="span7" onDesktop="span6">
+		<iframe src="http://localhost:3000/" height="285" class="span12">
+				<p>Tu navegador no soporta iframes</p>
+		</iframe>
+		<p style="text-align: center">Cara Frontal</p>
+		<!--<canvas id="gameCanvas" height="285"></canvas>-->
+	</div>
+</div>
+<div class="row-fluid">
+	<div class="span6 box black" onTablet="span6" onDesktop="span6">					
+		<iframe src="http://localhost:3000/" height="285" class="span12">
+				<p>Tu navegador no soporta iframes</p>
+		</iframe>
+		<p style="text-align: center">Cara Lateral Izquierda</p>
+		<!--<div class="content">
+			<canvas id="gameCanvasLeft" height="285"></canvas>					
+		</div>-->
+		
+	</div><!--/span-->				
+	<div class="box black span6" onTablet="span12" onDesktop="span6">
+		<iframe src="http://localhost:3000/" height="285" class="span12">
+				<p>Tu navegador no soporta iframes</p>
+		</iframe>
+		<p style="text-align: center">Cara Lateral Derecha</p>
+		<!--<div class="content">
+			 <canvas id="gameCanvasRight" height="285"></canvas>
+		</div>-->
+	</div>
+</div>
+{% endblock %}

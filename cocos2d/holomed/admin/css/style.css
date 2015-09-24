@@ -2803,6 +2803,19 @@ ul.messagesList li span.date {
 	font-size: 12px;
 }
 
+.priority.info {
+	background: #D6E6F4;
+	margin-bottom: 1px;
+}
+
+.priority.info span {
+	background: #428BCA;
+	padding: 2px 10px;
+	color: #fff;
+	display: inline-block;
+	font-size: 12px;
+}
+
 .task {
 	border-bottom: 1px solid #f9f9f9;
 	margin-bottom: 1px;
@@ -2822,6 +2835,10 @@ ul.messagesList li span.date {
 
 .task.low {
 	border-left: 2px solid #78CD51; /* rgba(120,205,81,1); */
+}
+
+.task.info {
+	border-left: 2px solid #87B6DD; /* rgba(120,205,81,1); */
 }
 
 .task .desc {

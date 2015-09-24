@@ -9,6 +9,7 @@
 */
 
 var express = require('express');
+var swig = require('./filters').swig;
 var bParser = require('body-parser');
 
 var urlencodedParser = bParser.urlencoded({ extended: false });
@@ -23,6 +24,16 @@ var exec = require('child_process').exec;
 var authentication = require('./authentication.js');
 var passport = authentication.passport;
 
+var controllers = require('./controllers.js');
+
+app.engine('html', swig.renderFile);
+
+app.set('view engine', 'html');
+app.set('views', __dirname + '/holomed/admin/views');
+
+// Solo desarrollo
+app.set('view cache', false);
+swig.setDefaults({ cache: false });
 
 function runNI(error, stdout, stderr){
 	console.log("Opening Holomed Monitor");
@@ -45,6 +56,8 @@ app.use('/admin/js', express.static(__dirname + '/holomed/admin/js') );
 app.use('/admin/css', express.static(__dirname + '/holomed/admin/css') );
 app.use('/js', express.static(__dirname + '/holomed/admin/js') );
 app.use('/css', express.static(__dirname + '/holomed/admin/css') );
+app.use('/font', express.static(__dirname + '/holomed/admin/font') );
+app.use('/img', express.static(__dirname + '/holomed/admin/img') );
 app.use('/main.js', express.static(__dirname + '/holomed/main.js'));
 app.use('/project.json', express.static(__dirname + '/holomed/project.json'));
 app.use('/frameworks', express.static(__dirname + '/frameworks') );
@@ -76,8 +89,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/login', function(req, res, next) {
-    res.sendFile(path.join(__dirname, 'holomed', 'admin/login.html'));
-	//res.render('login', {user: req.user});
+	res.render('login');
 });
 
 app.post('/login', urlencodedParser, function(req, res, next) {
@@ -89,27 +101,69 @@ app.post('/login', urlencodedParser, function(req, res, next) {
     
     	req.logIn(user, function(err) {
     		if (err) { return next(err); }
-		    return res.redirect('/admin');
+		    return res.redirect('/students');
     	});
 	})(req, res, next);
+});
+
+app.get('/register', function(req, res, next) {
+	res.render('registration');
+});
+
+app.post('/register', urlencodedParser, function(req, res, next) {
+	controllers.TeacherController.createNewTeacher(res, req.body);
+});
+
+app.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/login');
 });
 
 app.get('/loginFailure', function(req, res, next) {
   res.send('Failed to authenticate');
 });
  
-app.get('/loginSuccess', function(req, res, next) {
-  res.send('Successfully authenticated');
-});
-
-
 app.get('/admin', isAuthenticated, function(req, res) {
-    res.sendFile(path.join(__dirname, 'holomed', 'admin/index.html'));
+	var userFullName = req.user.fullName;
+	res.render('index', {
+		page: 'dashboard',
+		teacher: userFullName
+	});
 });
 
-app.get('/ni', function(req, res){
-	exec('python ../monitor-holomed-orders.py &', runNI);
-	res.sendFile(path.join(__dirname, 'holomed', 'admin.html'));
+app.get('/ni', isAuthenticated, function(req, res){
+	exec('python ../holomed-orders.py &', runNI);
+	res.render('index', {teacher: 'Juan Perozo'});  // Cambiar
+});
+
+app.get('/students', isAuthenticated, function(req, res){
+	controllers.TeacherController.getStudents(res, req.user);
+});
+
+app.post('/students', isAuthenticated, urlencodedParser, function(req, res){
+	controllers.TeacherController.createOrUpdateStudent(res, req.user, req.body);
+});
+
+app.get('/content', isAuthenticated, function(req, res){
+	var userFullName = req.user.fullName;
+	controllers.PhaseController.getPhasesByProgram('content', res, userFullName, 'Parto Eutocico Simple');
+});
+
+app.post('/content', isAuthenticated, urlencodedParser, function(req, res){
+	controllers.PhaseController.createOrUpdatePhase(req.body, res);
+});
+
+app.get('/getPhaseInfo', isAuthenticated, function(req, res){
+	controllers.PhaseController.getPhaseInfo(res, req.query['_id']);
+});
+
+app.get('/questions', isAuthenticated, function(req, res){
+	var userFullName = req.user.fullName;
+	controllers.PhaseController.getPhasesByProgram('questions', res, userFullName, 'Parto Eutocico Simple');
+});
+
+app.get('/getPhaseQuestions', isAuthenticated, function(req, res){
+	controllers.PhaseController.getQuestionsByPhase(res, req.query['_id']);
 });
 
 app.get('/test', function(req, res) {

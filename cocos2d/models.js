@@ -13,7 +13,9 @@ var db = mongoose.connection;
 var Schema = mongoose.Schema;
 
 var StudentSchema = new Schema({
-	fullName: String
+	fullName: String,
+	points: Number,
+	registrationDate: String
 });
 
 var TeacherSchema = new Schema({
@@ -24,25 +26,23 @@ var TeacherSchema = new Schema({
 });
 TeacherSchema.plugin(passportLocalMongoose);
 
-var OptionSchema = new Schema({
-	text: String,
-	isCorrect: Boolean,
-	isUserAnswer: Boolean,
-});
-
 var QuestionSchema = new Schema({
 	text: String,
-	options: [OptionSchema]
+	answer: String
 });
 
 
 var PhaseSchema = new Schema({
+	programName: String,
+	phaseName: String,
 	phaseID: Number,
 	prevPhase: Number,
 	nextPhase: Number,
 	initSprite: String,
 	endSprite: String,
-	studentsIn: [StudentSchema]
+	description: String,
+	studentsIn: [StudentSchema],
+	questions: [QuestionSchema]
 });
 
 var Model = mongoose.model.bind(mongoose);
@@ -50,28 +50,34 @@ var Model = mongoose.model.bind(mongoose);
 var Student = Model('Student', StudentSchema);
 var Teacher = Model('Teacher', TeacherSchema);
 var Question = Model('Question', QuestionSchema);
-var Option = Model('Option', OptionSchema);
 var Phase = Model('Phase', PhaseSchema);	
 
 module.exports = {
 	'Student': Student,
 	'Teacher': Teacher,
 	'Question': Question,
-	'Option': Option,
 	'Phase': Phase
 }
 
+/*
 //var students = db.students.find();
 
-/*Teacher.create({ username: 'ohernandez', password: '12341234', fullName: 'Omar Hernandez', students: [{ fullName: 'Juan Perozo'}] }, function (err) {
+Teacher.create({ username: 'ohernandez', password: '12341234', fullName: 'Omar Hernandez', students: [{ fullName: 'Juan Perozo', points: 0}] }, function (err) {
 
 //	teacher.students = Student.find();
 
 	if (err){ return err; }
   // saved!
-});*/
+});
 
-//mongoose.connection.close();
+Phase.create({ programName: 'Parto Eutocico Simple', phaseName: 'Descenso' ,phaseID: 1, prevPhase: -1, nextPhase: -1, initSprite: '0', endSprite: '10', description: 'Esta es una fase de prueba', studentsIn: [], questions: [{text: 'Por que se le dice la fase de descenso?', answer: 'Porque si'}]}, function(err, phase){
+	if (err){ return err; }
+	// saved!
+});
 
+
+
+mongoose.connection.close();
+*/
 
 

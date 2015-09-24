@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row-fluid">
+	<div class="span7">
+		<h1>Listado de Contenidos</h1>
+		<ul class="messagesList">
+		{% for phase in phases %}
+			<li>
+				<a class="phase" href="#" data-id="{{ phase.phase_id }}"><span class="from"><span class="glyphicons star"><i></i></span>Fase: {{ phase.phaseName }} <i></i></span></span><span class="title"><span class="label label-info"> Programa: {{ phase.programName }}</span></span></a>
+			</li>
+		{% endfor %}
+		</ul>
+		<div class="center">
+		 	<a class="btn btn-info" href="#" id="new">
+				<i class="halflings-icon white plus"></i> Nueva Fase 
+			</a>
+		 </div>
+	</div>
+	<div class="span5 noMarginLeft">
+		<div class="message dark">						
+			<div class="content">
+				<form id="phaseForm" class="replyForm" method="post" action="/content">
+					<fieldset>
+						<input type="hidden" id="_id" name="_id" value="undefined"/>
+						<label for="programName">Programa:</label>
+						<select id="programName" name="programName">
+							<option value="Parto Eutocico Simple">Parto Eutocico Simple</option>
+						</select>
+						<label for="phaseName">Fase:</label><input id="phaseName" name="phaseName" type="text" value=""/>
+						<label for="prevPhase">Fase Anterior:</label>
+						<select id="prevPhase">
+							<option value="-1">N/A</option>
+						</select>
+						<label for="nextPhase">Fase Siguiente:</label>
+						<select id="nextPhase">
+							<option value="-1">N/A</option>
+						</select>
+						<label for="initSprite">Im&aacute;gen Principal:</label>
+						<select id="initSprite">
+							<option value="-1">N/A</option>
+						</select>
+						<label for="endSprite">Im&aacute;gen Final:</label>
+						<select id="endSprite">
+							<option value="-1">N/A</option>
+						</select>
+						<label>Contenido:</label>
+						<textarea tabindex="3" class="input-xlarge span12" id="description" name="description" rows="12"></textarea>
+						<div class="actions">
+							<button tabindex="3" type="submit" class="btn btn-success">Guardar Datos</button>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>	
+	</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+	$("a#new").click(function(){
+		$("#_id").val("undefined");
+		$("#phaseName").val("");
+		$("#prevPhase").val("-1");
+		$("#nextPhase").val("-1");
+		$("#initSprite").val("-1");
+		$("#endSprite").val("-1");
+		$("#description").html("");
+	});
+
+	$("a.phase").click(function(){
+		var data = {
+			_id: $(this).attr("data-id")
+		}
+		$.ajax({
+			url: "getPhaseInfo",
+				data: data,
+	            type: 'GET',
+	            success: function(receivedData){
+		        	console.log(receivedData);
+		        	$("#_id").val(data._id);
+		        	$("#programName").val(receivedData.programName);
+		        	$("#phaseName").val(receivedData.phaseName);
+		        	$("textarea").html(receivedData.description);
+	            }            
+        });
+	});
+</script>
+{% endblock %}
