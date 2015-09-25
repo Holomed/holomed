@@ -6,7 +6,7 @@
 		<ul class="messagesList">
 		{% for phase in phases %}
 			<li>
-				<a class="phase" href="#" data-id="{{ phase.phase_id }}"><span class="from"><span class="glyphicons star"><i></i></span>Fase: {{ phase.phaseName }} <i></i></span></span><span class="title"><span class="label label-info"> Programa: {{ phase.programName }}</span></span></a>
+				<a class="phase" href="#" data-id="{{ phase.phase_id }}"><span class="from"><span class="glyphicons star"><i></i></span>Fase: {{ phase.phaseName }} <i></i></span></span><span class="title"><span class="label label-info"> Programa: {{ phase.programName }}</span></span></a><span class="date"><a class="openModal" href="#"><i class="halflings-icon trash"></i></a></span>
 			</li>
 		{% endfor %}
 		</ul>
@@ -84,5 +84,16 @@
 	            }            
         });
 	});
+
+	phaseId = '';
+
+	function customSelectElement(element){
+		var liParent = $(element).parentsUntil('ul')[1];
+		phaseId = $(liParent).find("a.phase").attr("data-id");
+	}
+
+	function deleteElement(){
+		$.form('/deletePhase', { _id: phaseId }, 'POST').submit();
+	}
 </script>
 {% endblock %}

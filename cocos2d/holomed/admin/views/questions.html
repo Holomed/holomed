@@ -18,11 +18,64 @@
 		<div class="clearfix"></div>
 		<br><br>		
 		<div class="center">
-		 	<a class="btn btn-info" href="#">
+		 	<a id="newAsk" class="btn btn-info" href="#">
 				<i class="halflings-icon white plus"></i> Agregar Pregunta 
 			</a>
 		 </div>
 	</div>
+</div>
+<div id="row-form" class="row-fluid sortable ui-sortable" style="display: none;">
+	<div class="box span12">
+		<div class="box-header" data-original-title="">
+			<h2><i class="halflings-icon white edit"></i><span class="break"></span>Agregar Nueva Pregunta</h2>
+		</div>
+		<div class="box-content" style="display: block;">
+			<form class="form-horizontal" method="post" action="/questions">
+				<input id="_id" name="_id" type="hidden" value="undefined"/>
+				<fieldset>
+				  <div class="control-group">
+					<label class="control-label" for="programName">Programa: </label>
+					<div class="controls">
+					  <select id="programName" name="programName">
+						<option selected="selected" value="Parto Eutocico Simple">Parto Eutocico Simple</option>
+					  </select>
+					</div>
+				  </div>
+				  <div class="control-group">
+					<label class="control-label" for="programName">Fase: </label>
+					<div class="controls">
+					  <select id="phase" name="phase">
+					    {% for phase in phases %}
+					    {% if forloop.counter == 0 %}
+						<option selected="selected" value="{{ phase.phase_id }}">{{ phase.phaseName }}</option>
+						{% else %}
+						<option value="{{ phase.phase_id }}">{{ phase.phaseName }}</option>
+						{% endif %}
+						{% endfor %}
+					  </select>
+					</div>
+				  </div>
+				  <div class="control-group">
+					<label class="control-label" for="text">Pregunta: </label>
+					<div class="controls">
+					  <textarea tabindex="3" class="input-xlarge span12" id="text" name="text" rows="3"></textarea>
+					</div>
+				  </div>
+				  <div class="control-group">
+					<label class="control-label" for="answer">Respuesta: </label>
+					<div class="controls">
+					  <textarea tabindex="3" class="input-xlarge span12" id="answer" name="answer" rows="9"></textarea>
+					</div>
+				  </div>
+				  <div class="form-actions">
+					<button type="submit" class="btn btn-primary">Guardar</button>
+					<button type="button" id="cancelAsk" class="btn">Cancelar</button>
+				  </div>
+				</fieldset>
+			  </form>
+		
+		</div>
+	</div><!--/span-->			
 </div>
 {% endblock %}
 {% block scripts %}
@@ -43,7 +96,7 @@
 		            	var questionHtml = '';
 		     	       	if (receivedData.length > 0){
 		     	       		$(receivedData).each(function(index, question){
-		     	       			questionHtml = '<li class="task info"><div class="desc"><div class="title">'+ question.text +'</div><div>'+ question.answer +'</div></div></li>';
+		     	       			questionHtml = '<li class="task info" data-id="'+ question._id +'"><div class="desc"><div class="title">'+ question.text +'</div><div class="answer">'+ question.answer +'</div></div><div class="time"><div class="date"><a href="#"><i class="halflings-icon edit"></i></a><a class="openModal" href="#"><i class="halflings-icon trash"></i></a></div></div></li>';
 		     	       			$(ul).append(questionHtml);
 		     	       		});
 		            	} else {
@@ -58,5 +111,62 @@
 			$(ul).hide();
 		}
 	});
+
+	$("#newAsk").click(function(){
+		$("h2").html('<i class="halflings-icon white edit"></i><span class="break"></span>Agregar Nueva Pregunta');
+
+		var parentDiv = $(this).parent();
+		$(parentDiv).hide();
+		$("#row-form").show();
+	});
+
+	$("#cancelAsk").click(function(){
+		$("#row-form").hide();
+		var buttonParentDiv = $("#newAsk").parent();
+		$(buttonParentDiv).show();
+		$("#_id").val("undefined");
+		$("#text").val("");
+		$("#answer").val("");
+		$("#phase").attr("disabled", false);
+		$("#programName").attr("disabled", false);
+	});
+
+	$(document).ready(function(){
+		$(this).on("click", ".edit", function(){
+			$("h2").html('<i class="halflings-icon white edit"></i><span class="break"></span>Editar Pregunta');
+
+			var liParent = $(this).parentsUntil("ul")[3];
+			var phaseElement = $(liParent).parent().parent().find(".phase");
+			phaseSelectorOption = "#phase option[value=" + $(phaseElement).attr("data-id") + "]";
+
+			var buttonParentDiv = $("#newAsk").parent();
+			$(buttonParentDiv).hide();
+
+			$(phaseSelectorOption).prop("selected", true);
+			//$("#programName").attr("disabled", true);
+			//$("#phase").attr("disabled", true);
+			$("#_id").val($(liParent).attr("data-id"));
+			$("#text").val($(liParent).find(".title").html());
+			$("#answer").val($(liParent).find(".answer").html());
+
+			$("#row-form").show();
+		});
+	})
+
+	phaseId = '';
+	questionId = '';
+
+	function customSelectElement(element){
+		var liParent = $(element).parentsUntil("ul")[2];
+		var phaseElement = $(liParent).parent().parent().find(".phase");
+		questionId = $(liParent).attr("data-id");
+		phaseId = $(phaseElement).attr("data-id");
+	}
+
+	function deleteElement(){
+		$.form('/deleteQuestionFromPhase', 
+			{ phaseId: phaseId, questionId: questionId }, 
+			'POST').submit();
+	}
 </script>
 {% endblock %}

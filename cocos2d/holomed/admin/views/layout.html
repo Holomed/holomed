@@ -126,6 +126,27 @@
 		</div><!--/fluid-row-->		
 	<footer>
 	</footer>
+	<div class="modal hide fade in" id="myModal" aria-hidden="false" style="display: none;">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">×</button>
+			{% if page == 'students' %}
+			<h3>¿Seguro que desea eliminar a este estudiante?</h3>
+			{% endif %}
+			{% if page == 'questions' %}
+			<h3>¿Seguro que desea eliminar esta pregunta?</h3>
+			{% endif %}
+			{% if page == 'content' %}
+			<h3>¿Seguro que desea eliminar esta fase?</h3>
+			{% endif %}
+		</div>
+		<div class="modal-body">
+			<p>Toda la informaci&oacute;n referente se perder&aacute;</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="btn" data-dismiss="modal">Cancelar</a>
+			<a href="javascript:deleteElement();" class="btn btn-danger">Eliminar</a>
+		</div>
+	</div>
 	
 	<!-- start: JavaScript-->
 
@@ -159,9 +180,70 @@
 	<script src="js/counter.js"></script>
 	<script src="js/retina.js"></script>
 	<script src="js/custom.js"></script>
-	<script src="../../frameworks/cocos2d-html5/CCBoot.js"></script>	
+	<script src="../../frameworks/cocos2d-html5/CCBoot.js"></script>
+	<script>
+	jQuery(function($) { $.extend({
+    form: function(url, data, method) {
+        if (method == null) method = 'POST';
+        if (data == null) data = {};
+
+        var form = $('<form>').attr({
+            method: method,
+            action: url
+         }).css({
+            display: 'none'
+         });
+
+        var addData = function(name, data) {
+            if ($.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    var value = data[i];
+                    addData(name + '[]', value);
+                }
+            } else if (typeof data === 'object') {
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        addData(name + '[' + key + ']', data[key]);
+                    }
+                }
+            } else if (data != null) {
+                form.append($('<input>').attr({
+                  type: 'hidden',
+                  name: String(name),
+                  value: String(data)
+                }));
+            }
+        };
+
+        for (var key in data) {
+            if (data.hasOwnProperty(key)) {
+                addData(key, data[key]);
+            }
+        }
+
+        return form.appendTo('body');
+    }
+}); });
+	</script>
 	{% block scripts %}
 	{% endblock %}
+	{% if page != 'content' && page != 'questions' %}
+	<script>
+		function customSelectElement(element){
+		}
+
+		function deleteElement(){
+		}
+	</script>			
+	{% endif %}
+	<script>
+		$(document).ready(function(){
+			$(document).on('click', ".openModal", function(){
+				$("#myModal").modal();
+				customSelectElement(this);
+			})
+		});
+	</script>	
 	<!-- end: JavaScript-->
 </body>
 </html>

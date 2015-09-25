@@ -18,20 +18,20 @@
 			  </thead>   
 			  <tbody>
 			    {% for student in students %}
-				<tr>
-					<td>{{ student.fullName }}</td>
-					<td class="center">2012/01/01</td>
+				<tr class="student_id" data-id="{{ student.student_id }}">
+					<td class="studentFullName">{{ student.fullName }}</td>
+					<td class="registrationDate center">{{ student.registrationDate }}</td>
 					<td class="center">Parto Eut&oacute;cico Simple</td>
-					<td class="center">0</td>
-					<td class="center">0</td>
+					<td class="currentPhase center"></td>
+					<td class="points center">{{ student.points }}</td>
 					<td class="center ">
 					<a href="#">
 						<i class="halflings-icon zoom-in"></i>  
 					</a>
-					<a href="#">
+					<a class="edit-student" href="#">
 						<i class="halflings-icon edit"></i>  
 					</a>
-					<a href="#">
+					<a class="openModal" href="#">
 						<i class="halflings-icon trash"></i> 
 					</a>
 				</td>
@@ -39,6 +39,7 @@
 				{% endfor %}
 				<tr id="tr-form" style="display:none">
 					<form id="student-form" action="students" method="post">
+						<input type="hidden" id="idStudent" name="idStudent" value="undefined">
 						<td><input type="text" name="fullName" id="fullName" placeholder="Nombre de Estudiante"/></td>
 						<td id="date-register"></td>
 						<td>
@@ -53,7 +54,7 @@
 							{% endfor %}
 							</select>
 						</td>
-						<td>0</td>
+						<td id="user-points">0</td>
 						<td>
 							<a id="accept-add-student" href="#">
 								<i class="halflings-icon ok"></i> 
@@ -76,6 +77,24 @@
 {% endblock %}
 {% block scripts %}
 <script type="text/javascript">
+	$(document).ready(function(){
+		$(".student_id").each(function(index, element){
+			var studentId = $(element).attr('data-id');
+			data = {studentId: studentId};
+
+			$.ajax({
+				url: "getPhaseStudent",
+				data: data,
+	            type: 'GET',
+	            success: function(receivedData){
+	            	var currentPhase = $(element).find(".currentPhase");
+	            	$(currentPhase).attr("id", receivedData.phaseId);
+		        	$(currentPhase).html(receivedData.phaseName);
+	            }            
+        	});
+		})
+	});
+
 	$("#add-student").click(function(){
 		var fullDate = new Date();
 		var twoDigitMonth = fullDate.getMonth()+"";if(twoDigitMonth.length==1)	twoDigitMonth="0" +twoDigitMonth;
@@ -86,8 +105,31 @@
 		$("#tr-form").show();
 	});
 
+	$(".edit-student").click(function(){
+		trParent = $(this).parent().parent();
+		var id = $(trParent).attr("data-id");
+		var fullName = $(trParent).find(".studentFullName").html();
+		var registrationDate = $(trParent).find(".registrationDate").html();
+		var points = $(trParent).find(".points").html();
+		var currentPhase = $(trParent).find(".currentPhase").attr("id");
+
+		var phaseSelector = "#phase option[value="+ currentPhase +"]";
+
+		$("#idStudent").val(id);
+		$("#fullName").val(fullName);
+		$("#date-register").html(registrationDate);
+		$("#user-points").html(points);
+		$(phaseSelector).prop("selected", true);
+
+		$("#tr-form").show();
+	});
+
 	$("#cancel-add-student").click(function(){
+		$("#idStudent").val("undefined");
 		$("#fullName").val("");
+		$("#date-register").html("");
+		$("#user-points").html("0");
+
 		$("#tr-form").hide();
 	});
 

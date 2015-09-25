@@ -144,6 +144,10 @@ app.post('/students', isAuthenticated, urlencodedParser, function(req, res){
 	controllers.TeacherController.createOrUpdateStudent(res, req.user, req.body);
 });
 
+app.get('/getPhaseStudent', isAuthenticated, function(req, res){
+	controllers.PhaseController.getStudentPhase(req.query, res);
+})
+
 app.get('/content', isAuthenticated, function(req, res){
 	var userFullName = req.user.fullName;
 	controllers.PhaseController.getPhasesByProgram('content', res, userFullName, 'Parto Eutocico Simple');
@@ -157,13 +161,25 @@ app.get('/getPhaseInfo', isAuthenticated, function(req, res){
 	controllers.PhaseController.getPhaseInfo(res, req.query['_id']);
 });
 
+app.post('/deletePhase', isAuthenticated, urlencodedParser, function(req, res){
+	controllers.PhaseController.deletePhaseById(req.body, res);
+});
+
 app.get('/questions', isAuthenticated, function(req, res){
 	var userFullName = req.user.fullName;
 	controllers.PhaseController.getPhasesByProgram('questions', res, userFullName, 'Parto Eutocico Simple');
 });
 
+app.post('/questions', isAuthenticated, urlencodedParser, function(req, res){
+	controllers.PhaseController.createOrUpdateQuestion(req.body, res);
+});
+
 app.get('/getPhaseQuestions', isAuthenticated, function(req, res){
 	controllers.PhaseController.getQuestionsByPhase(res, req.query['_id']);
+});
+
+app.post('/deleteQuestionFromPhase', isAuthenticated, urlencodedParser, function(req, res){
+	controllers.PhaseController.deleteQuestionFromPhase(req.body, res);
 });
 
 app.get('/test', function(req, res) {
