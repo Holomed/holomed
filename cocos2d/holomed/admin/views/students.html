@@ -136,5 +136,18 @@
 	$("#accept-add-student").click(function(){
 		$("#student-form").submit();
 	});
+
+	studentId = '';
+	phaseId = '';
+
+	function customSelectElement(element){
+		var trParent = $(element).parentsUntil('tbody')[1];
+		studentId = $(trParent).attr('data-id');
+		phaseId = $(trParent).find('.currentPhase').attr('id');
+	}
+
+	function deleteElement(){
+		$.form('/deleteStudent', { _id: studentId, phaseId: phaseId }, 'POST').submit();
+	}
 </script>
 {% endblock %}

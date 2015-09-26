@@ -29,63 +29,108 @@ function nowDate(){
 }
 
 TeacherController.prototype.createOrUpdateStudent = function createOrUpdateStudent(response, teacher, studentData){
+	var studentId = studentData.idStudent;
+	var phase_id = studentData.phase;
 
-	this.Teacher.findOne({_id : teacher._id}, function(err, teacher){
-		var studentId = studentData.idStudent;
-		var phase_id = studentData.phase;
-		
-		delete studentData.idStudent;
-		delete studentData.phase;
-		delete studentData.programName;
+	delete studentData.programName;
+	delete studentData.idStudent;
+	delete studentData.phase;
 
-		if (studentId == "undefined"){
-			studentData['points'] = 0;
-			studentData['registrationDate'] = nowDate();
+	if (studentId == 'undefined'){
+		studentData['_teacher'] = mongoose.Types.ObjectId(teacher._id);
+		studentData['_phase'] = mongoose.Types.ObjectId(phase_id);
+		studentData['points'] = 0;
+		studentData['registrationDate'] = nowDate();
 
-			models.Student.create(studentData, function(err, student){
-
-				models.Phase.findOne({ _id: phase_id }, function(err, phase){
-					teacher.students.push(student);
-					phase.studentsIn.push(student);
-
-					teacher.save(function(teacher){
-						phase.save(function(phase){
-							response.redirect('students');
-						});
+		var student = new models.Student(studentData);
+		student.save(function(err){
+			teacher.students.push(student._id);
+			teacher.save(function(err){
+				models.Phase.findOne({_id: phase_id}, function(err, phase){
+					phase.studentsIn.push(student._id);
+					phase.save(function(err){
+						response.redirect('students');
 					});
 				});
 			});
-		} else {
-			var teacherStudent = teacher.students.id(studentId);
-			teacherStudent.update(studentData);
-			console.log(teacherStudent);
+		});
+	} else {
+		models.Student.findOne({_id: studentId}, studentData, function(err, student){
 			response.redirect('students');
-		}
-	});
+		});
+	}	
 }
 
 TeacherController.prototype.getStudents = function getStudents(response, teacher){
-	var phasesList = [];
+	this.Teacher.findOne({_id: teacher._id})
+	.populate('students')
+	.exec(function(err, teacher){
 
-	models.Phase.find({}, function(err, phases){
-		
 		var userFullName = teacher.fullName;
 		var students = teacher.students;
 
-		phases.forEach(function(phase) {
-			phase.phase_id = String(phase._id);
-      		phasesList.push(phase);
-    	});
-
-    	students.forEach(function(student){
+		students.forEach(function(student){
     		student.student_id = String(student._id);
     	});
 
-		response.render('students', {
-			page: 'students',
-			teacher: userFullName,
-			students: students,
-			phases: phases
+		models.Phase.find({}, function(err, phases){
+
+			phases.forEach(function(phase) {
+				phase.phase_id = String(phase._id);
+    		});
+		
+			response.render('students', {
+				page: 'students',
+				teacher: userFullName,
+				students: students,
+				phases: phases
+			});
+		});
+	});
+}
+
+function getElementIndex(array, idElement){
+	var FoundException = {};
+	var indexGlobal = -1;
+
+	try{
+		array.forEach(function(id, index){
+			if (item._id == idElement){
+				indexGlobal = index;
+				throw FoundException;
+			}
+		});
+	} catch(e){
+	}
+
+	return indexGlobal;
+}
+
+TeacherController.prototype.deleteStudentById = function deleteStudentById(request, response, teacher){
+	var _id = mongoose.Types.ObjectId(request._id);
+	var phase_id = mongoose.Types.ObjectId(request.phaseId);
+	var teacher_id = mongoose.Types.ObjectId(teacher._id);
+	var index = -1;
+
+	models.Teacher.find({_id: teacher_id})
+	.populate('students')
+	.exec(function(err, teachers){
+		var teacher = teachers[0];
+		index = getElementIndex(teacher.students, _id);
+		teacher.students.splice(index, 1);
+		teacher.save(function(err, teacher){
+			models.Phase.find({ _id: phase_id })
+			.populate('studentsIn')
+			.exec(function(err, phases){
+				var phase = phases[0];
+				index = getElementIndex(phase.studentsIn, _id);
+				phase.studentsIn.splice(index, 1);
+				phase.save(function(err, phase){
+					models.Student.findOneAndRemove({_id: _id}, function(err){
+						response.redirect('students');
+					});
+				});
+			})
 		});
 	});
 }
@@ -146,34 +191,16 @@ PhaseController.prototype.deletePhaseById = function deletePhaseById(request, re
 }
 
 PhaseController.prototype.getStudentPhase = function getStudentPhase(request, response){
-	var FoundException = {};
-	var phaseName = 'N/A';
-	var phaseId = 'N/A';
 
-	this.Phase.find({}, function(err, phases){
-		try{
-			phases.forEach(function(phase){
-				try{
-					phase.studentsIn.forEach(function(student){
-						if (student._id == request.studentId){
-							throw FoundException;
-						}
-					});
-				} catch(e) {
-					phaseId = phase._id;
-					phaseName = phase.phaseName;
-					throw e;
-				}
-			});
-		} catch (e){
-		}
-
-		response.json({phaseId: phaseId, phaseName: phaseName});
-	})
+	models.Student.find({_id: request.studentId})
+	.populate('_phase')
+	.exec(function(err, students){
+		var student = students[0];
+		response.json({phaseId: student._phase._id, phaseName: student._phase.phaseName});
+	});
 }
 
 PhaseController.prototype.createOrUpdateQuestion = function createOrUpdateQuestion(request, response){
-	console.log(request);
 	var phase_id = request.phase;
 
 	delete request.phase;

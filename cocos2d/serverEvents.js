@@ -120,7 +120,7 @@ app.get('/logout', function(req, res){
 });
 
 app.get('/loginFailure', function(req, res, next) {
-  res.send('Failed to authenticate');
+	res.render('login', { error: true });
 });
  
 app.get('/admin', isAuthenticated, function(req, res) {
@@ -147,6 +147,10 @@ app.post('/students', isAuthenticated, urlencodedParser, function(req, res){
 app.get('/getPhaseStudent', isAuthenticated, function(req, res){
 	controllers.PhaseController.getStudentPhase(req.query, res);
 })
+
+app.post('/deleteStudent', isAuthenticated, urlencodedParser, function(req, res){
+	controllers.TeacherController.deleteStudentById(req.body, res, req.user);
+});
 
 app.get('/content', isAuthenticated, function(req, res){
 	var userFullName = req.user.fullName;

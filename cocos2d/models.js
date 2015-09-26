@@ -11,8 +11,11 @@ mongoose.connect('mongodb://localhost/holomeddb');
 var db = mongoose.connection;
 
 var Schema = mongoose.Schema;
+var Model = mongoose.model.bind(mongoose);
 
 var StudentSchema = new Schema({
+	_teacher: { type : Schema.ObjectId, ref : 'Teacher' },
+	_phase: { type : Schema.ObjectId, ref : 'Phase' },
 	fullName: String,
 	points: Number,
 	registrationDate: String
@@ -22,7 +25,7 @@ var TeacherSchema = new Schema({
 	username: String,
 	password: String,
 	fullName: String,
-	students: [StudentSchema]
+	students: [{ type : Schema.ObjectId, ref : 'Student' }]
 });
 TeacherSchema.plugin(passportLocalMongoose);
 
@@ -41,11 +44,9 @@ var PhaseSchema = new Schema({
 	initSprite: String,
 	endSprite: String,
 	description: String,
-	studentsIn: [StudentSchema],
+	studentsIn: [{ type : Schema.ObjectId, ref : 'Student' }],
 	questions: [QuestionSchema]
 });
-
-var Model = mongoose.model.bind(mongoose);
 
 var Student = Model('Student', StudentSchema);
 var Teacher = Model('Teacher', TeacherSchema);
