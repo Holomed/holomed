@@ -62,84 +62,170 @@ var socket = io.connect('http://127.0.0.1:3000');
 //
 //------------------------------------------------------------------
 
+phaseList = [];
+totalAnimFrames = [];
+
+function initTextureCache(resourceDir){
+	var resourceDirSplited = resourceDir.split("/");
+	var resourceName = resourceDirSplited[resourceDirSplited.length-1];
+	var phaseNumber = resourceName.split("_")[1];
+
+	var texture = cc.textureCache.addImage(resourceDir);
+	var width = 512;
+	var height = 300;
+	var frameList = [];
+	var xPos = 0;
+	var yPos = 0;
+
+	if (phaseNumber < 8){
+		for (var i = 0; i < 4; i++){
+			if (i < 3){
+				for (var j = 0; j < 13; j++){
+					frameList.push(new cc.SpriteFrame(texture, cc.rect(xPos, yPos, width, height)));
+					xPos += width;
+				}
+			} else {
+				frameList.push(new cc.SpriteFrame(texture, cc.rect(xPos, yPos, width, height)));
+			}
+			xPos = 0;
+			yPos += height;
+		}
+	} else {
+		frameList.push(new cc.SpriteFrame(texture, cc.rect(xPos, yPos, width, height)));
+	}
+
+	return frameList;
+}
+
+function getPhaseNumber(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] == 0){
+			return i;
+		}
+	}
+	return phaseList.length + 1;
+}
+
+function getPhase(phaseList, type){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] == 0){
+			return totalAnimFrames[i];
+		}
+	}
+	return null;
+}
+
+function loadUserPhase(phaseList){
+	var init = getPhaseNumber(phaseList);
+	var listSpritesheetNames = s_phases_frontal.split(",");
+	for (var i = init; i < phaseList.length; i++){
+		var frameList = this.initTextureCache(listSpritesheetNames[i]);
+		totalAnimFrames.push(frameList);
+	}
+
+}
+
+function checkEndedPhase(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] == 0){
+			phaseList[i] = 1;
+			break;
+		}
+	}
+	return phaseList;
+}
+
+function runAnimation(sprite, phaseList){
+	var animFrames = getPhase(phaseList);
+        
+	//var animation = new cc.Animation(this._animFrames, 0.2); Para las rotaciones
+    var animation = new cc.Animation(animFrames, 0.05);
+    var animate = cc.animate(animation);
+    var delay = cc.delayTime(0);
+    var seq = cc.sequence(animate,
+        cc.flipX(false),
+        //animate.clone(),
+        delay);
+
+	console.log(phaseList);
+	sprite.runAction(seq);
+}
+
 var rotateSprite = false;
 
 var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
 
     _title:"",
     _num: 0,
+    ctor: function (){
+    	this._super();
+    	phaseList = [0,0,0,0,0,0,0,0];
+    	loadUserPhase(phaseList);
+    },
     onEnter:function () {
         this._super();
-
-        var texture = cc.textureCache.addImage(s_baby_rotation);
-
-        var frame0 = new cc.SpriteFrame(texture, cc.rect(159, 0, 353, 279));
-        var frame1 = new cc.SpriteFrame(texture, cc.rect(656, 0, 353, 279));
-        var frame2 = new cc.SpriteFrame(texture, cc.rect(1141, 0, 353, 279));
-        var frame3 = new cc.SpriteFrame(texture, cc.rect(1606, 0, 353, 279));
-        var frame4 = new cc.SpriteFrame(texture, cc.rect(2094, 0, 353, 279));
-        var frame5 = new cc.SpriteFrame(texture, cc.rect(2585, 0, 353, 279));
-        var frame6 = new cc.SpriteFrame(texture, cc.rect(3068, 0, 353, 279));
-        var frame7 = new cc.SpriteFrame(texture, cc.rect(3568, 0, 353, 279));
-        var frame8 = new cc.SpriteFrame(texture, cc.rect(4099, 0, 353, 279));
-        var frame9 = new cc.SpriteFrame(texture, cc.rect(4680, 0, 353, 279));
-        var frame10 = new cc.SpriteFrame(texture, cc.rect(5254, 0, 353, 279));
-        var frame11 = new cc.SpriteFrame(texture, cc.rect(5799, 0, 353, 279));
-
-        var sprite = new cc.Sprite(frame0);
-        //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
-        sprite.x = winSize.width / 2;
-        sprite.y = winSize.height / 2;
-
-        this.addChild(sprite);
-
-        // Llenar el arreglo afuera 
-        var animFrames = [];
-        animFrames.push(frame0);
-        animFrames.push(frame1);
-        animFrames.push(frame2);
-        animFrames.push(frame3);
-        animFrames.push(frame4);
-        animFrames.push(frame5); 
-        animFrames.push(frame6); 
-        animFrames.push(frame7); 
-        animFrames.push(frame8);
-        animFrames.push(frame9);
-        animFrames.push(frame10);
-        animFrames.push(frame11);
-
-        var animation = new cc.Animation(animFrames, 0.2);
-        var animate = cc.animate(animation);
-        var delay = cc.delayTime(0);
-        var seq = cc.sequence(animate,
-            cc.flipX(false),
-            animate.clone(),
-            delay);
-
-        //this.sprite.runAction(seq.repeatForever());
+        var animFrames = getPhase(phaseList);
         
-        var moving = false;
+		var sprite = new cc.Sprite(animFrames[0]);
 
+	    sprite.x = winSize.width / 2;
+	    sprite.y = winSize.height / 2;
+
+	    this.addChild(sprite);
+
+	    responsiveVoice.speak("Instrucciones Generales", 
+            		"Spanish Female");
+
+	    
         this._listener = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
-            	if (!moving){
-                	sprite.runAction(seq.repeatForever());
-                }
-                else{
-                	sprite.stopAllActions();
-                }
-                moving = !moving;
 
+            	responsiveVoice.speak("Contenido de la lección "+ parseInt(getPhaseNumber(phaseList) + 1) +" de la Base de Datos.", 
+            		"Spanish Female", {onend: function(){
+
+            			runAnimation(sprite, phaseList);
+            			phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
+		            	
+            		}});
+    
                 return true;
             }
         });
         cc.eventManager.addListener(this._listener, 1);
 
-        socket.on('update', function (data) {
-		    var event = new cc.EventCustom("move_sprite_event");
-		    cc.eventManager.dispatchEvent(event);
+        this._listener2 = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: "testeando",
+            callback: function(event){
+
+            	console.log("rotacion");
+            	testing = false;
+    
+                return true;
+            }
+        });
+        cc.eventManager.addListener(this._listener2, 1);
+
+        //var testing = false;
+
+        socket.on('ni-message', function (data) {
+        	var userEvent = null;
+
+        	if (data == 'getContent'){
+        		userEvent = new cc.EventCustom("move_sprite_event");
+        	}
+
+        	cc.eventManager.dispatchEvent(userEvent);
+        /*	if (!testing){
+        		testing = true;
+		    	var event = new cc.EventCustom("move_sprite_event");
+		    	cc.eventManager.dispatchEvent(event);
+		    } else {
+		    	var event = new cc.EventCustom("testeando");
+		    	cc.eventManager.dispatchEvent(event);
+		    }*/
 		});
 
 		this.scheduleUpdate();

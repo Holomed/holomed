@@ -399,7 +399,10 @@
         "socketio" : [
             "external/socketio/socket.io.min.js"
         ],
-        "external" : ["box2d", "chipmunk", "socketio", "pluginx"]
+        "responsivevoice": [
+        	"external/responsivevoice/responsivevoice.js"
+        ],
+        "external" : ["box2d", "chipmunk", "socketio", "pluginx", "responsivevoice"]
     },
     "bootFile" : "CCBoot.js"
 }

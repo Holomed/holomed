@@ -70,6 +70,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
         this._super();
 
         var texture = cc.textureCache.addImage(s_baby_rotation);
+        var testTexture = cc.textureCache.addImage(test_size_png);
 
         var frame0 = new cc.SpriteFrame(texture, cc.rect(159, 0, 353, 279));
         var frame1 = new cc.SpriteFrame(texture, cc.rect(656, 0, 353, 279));

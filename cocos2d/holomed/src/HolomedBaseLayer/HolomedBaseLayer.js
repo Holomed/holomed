@@ -36,6 +36,8 @@ var autoTestCurrentTestName = autoTestCurrentTestName || "N/A";
 
 var HolomedBaseLayerProps = {
 
+	_animFrames: [],
+	_phases: [0,0,0,0,0,0,0,0], // TODO: Llenar con datos de la bd
     ctor:function(colorA, colorB ) {
 
         cc.sys.garbageCollect();
@@ -267,7 +269,48 @@ var HolomedBaseLayerProps = {
             sorted[a[key]] = o[a[key]];
         }
         return sorted;
-    }
+    },
+
+    getPhase: function(phaseList){
+    	for (var i = 0; i < phaseList.length; i++){
+    		if (phaseList[i] == 0){
+    			return this._animFrames[i];
+    		}
+    	}
+    	return null;
+    },
+
+    checkEndedPhase: function(phaseList){
+    	for (var i = 0; i < phaseList.length; i++){
+    		if (phaseList[i] == 0){
+    			phaseList[i] = 1;
+    			break;
+    		}
+    	}
+    	return phaseList;
+    },
+
+    endedCourse: function(){
+    	for (var i = 0; i < this._phases.length; i++){
+    		if (this._phases[i] == 0){
+    			return false;
+    		}
+    	}
+
+    	return true;
+    },
+
+    
+    addAnimFrames: function(frameList){
+    	//this._animFrames.push(frameList);
+    	/*if (this._animFrames.length > 0){
+    		for (var i = 0; i < frameList.length; i++){
+    			this._animFrames.push(frameList[i]);
+    		}
+    	} else {
+    		this._animFrames = frameList;
+    	}*/
+    },
 };
 
 var HolomedBaseLayer = cc.LayerGradient.extend(HolomedBaseLayerProps);
