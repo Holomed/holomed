@@ -190,8 +190,8 @@ app.get('/test', function(req, res) {
     res.sendFile(path.join(__dirname, 'holomed', 'testyusugomori.html'));
 });
 
-app.get('/action', function(req, res) {
-    sockets.emit('ni-message', "getContent");
+app.post('/action', urlencodedParser, function(req, res) {
+    sockets.emit('ni-message', req.body['message']);
     console.log("Emitio");
     res.send('Action Received Successfully!');
 });

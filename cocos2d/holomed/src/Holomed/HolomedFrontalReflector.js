@@ -63,6 +63,7 @@ var socket = io.connect('http://127.0.0.1:3000');
 //------------------------------------------------------------------
 
 phaseList = [];
+questionList = [];
 totalAnimFrames = [];
 
 function initTextureCache(resourceDir){
@@ -97,32 +98,43 @@ function initTextureCache(resourceDir){
 	return frameList;
 }
 
-function getPhaseNumber(phaseList){
+function getPhase(phaseList){
+	console.log(phaseList);
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] == 0){
-			return i;
-		}
-	}
-	return phaseList.length + 1;
-}
-
-function getPhase(phaseList, type){
-	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] == 0){
-			return totalAnimFrames[i];
+		if (i > 0){
+			if (((phaseList[i] == 0)&&(phaseList[i-1] == 2))||(phaseList[i] == 1)){
+				return {phaseNumber: i, animFrames: totalAnimFrames[i]};
+			} else if (phaseList[i] == 2) {
+			} else {
+				return {phaseNumber: (i - 1), animFrames: totalAnimFrames[i-1]};
+			}
+		} else {
+			if (phaseList[i] == 0){
+				return {phaseNumber: i, animFrames: totalAnimFrames[i]};
+			}
 		}
 	}
 	return null;
 }
 
+function getQuestion(actualPhase){
+	var phaseQuestions = questionList[actualPhase];
+	for (var i=0; i < phaseQuestions.length; i++){
+		if (phaseQuestions[i].made == false){
+			return phaseQuestions[i];
+		}
+	}
+	return null;
+}
+
+
 function loadUserPhase(phaseList){
-	var init = getPhaseNumber(phaseList);
+	var init = (getPhase(phaseList)).phaseNumber;
 	var listSpritesheetNames = s_phases_frontal.split(",");
 	for (var i = init; i < phaseList.length; i++){
 		var frameList = this.initTextureCache(listSpritesheetNames[i]);
 		totalAnimFrames.push(frameList);
 	}
-
 }
 
 function checkEndedPhase(phaseList){
@@ -135,8 +147,18 @@ function checkEndedPhase(phaseList){
 	return phaseList;
 }
 
+function checkQuestionsOver(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] == 1){
+			phaseList[i] = 2;
+			break;
+		}
+	}
+	return phaseList;	
+}
+
 function runAnimation(sprite, phaseList){
-	var animFrames = getPhase(phaseList);
+	var animFrames = getPhase(phaseList).animFrames;
         
 	//var animation = new cc.Animation(this._animFrames, 0.2); Para las rotaciones
     var animation = new cc.Animation(animFrames, 0.05);
@@ -147,7 +169,6 @@ function runAnimation(sprite, phaseList){
         //animate.clone(),
         delay);
 
-	console.log(phaseList);
 	sprite.runAction(seq);
 }
 
@@ -159,12 +180,13 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
     _num: 0,
     ctor: function (){
     	this._super();
-    	phaseList = [0,0,0,0,0,0,0,0];
+    	phaseList = [0,0,0,0,0,0,0,0]; // TODO: Desde Base de Datos
+    	questionList = [[{text: '¿Pienso y luego existo?', answer: 'a', made: false}],[],[],[],[],[],[],[]]; // TODO: Base de Datos
     	loadUserPhase(phaseList);
     },
     onEnter:function () {
         this._super();
-        var animFrames = getPhase(phaseList);
+        var animFrames = (getPhase(phaseList)).animFrames;
         
 		var sprite = new cc.Sprite(animFrames[0]);
 
@@ -177,12 +199,11 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             		"Spanish Female");
 
 	    
-        this._listener = cc.EventListener.create({
+        this._listenerExplanation = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
-
-            	responsiveVoice.speak("Contenido de la lección "+ parseInt(getPhaseNumber(phaseList) + 1) +" de la Base de Datos.", 
+            	responsiveVoice.speak("Contenido de la lección "+ parseInt(getPhase(phaseList).phaseNumber + 1) +".",
             		"Spanish Female", {onend: function(){
 
             			runAnimation(sprite, phaseList);
@@ -193,39 +214,83 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
                 return true;
             }
         });
-        cc.eventManager.addListener(this._listener, 1);
+        cc.eventManager.addListener(this._listenerExplanation, 1);
 
-        this._listener2 = cc.EventListener.create({
+        this._listenerQuestions = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
-            eventName: "testeando",
+            eventName: "moving_to_question",
             callback: function(event){
-
-            	console.log("rotacion");
-            	testing = false;
+            	var actualPhase = (getPhase(phaseList)).phaseNumber;
+            	var question = getQuestion(actualPhase);
+            	if (question){ 
+            		responsiveVoice.speak("Fase de Preguntas", 
+            			"Spanish Female", {onend: function(){
+            				responsiveVoice.speak("Pregunta 1: " + question.text, 
+            					"Spanish Female");
+							
+            				//TODO: Notificar que los eventos siguientes son puras opciones
+            			}});
+            	} else {
+            		phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            	}
+            	
     
                 return true;
             }
         });
-        cc.eventManager.addListener(this._listener2, 1);
+        cc.eventManager.addListener(this._listenerQuestions, 1);
+
+        this._listenerOptions = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: "answer_question",
+            callback: function(event){
+            	var userOption = event.getUserData();
+
+				var actualPhase = (getPhase(phaseList)).phaseNumber;
+				console.log(actualPhase);
+            	var question = getQuestion(actualPhase);
+            	var answer = 'Incorrecto';
+
+            	if (question.answer == userOption){
+            		answer = 'Correcto';
+            	}
+
+            	responsiveVoice.speak(answer, 
+            			"Spanish Female", {onend: function(){
+            				question.made = true;
+            				var newQuestion = getQuestion(actualPhase);
+            				if (newQuestion){
+            					responsiveVoice.speak(newQuestion.text, 
+            						"Spanish Female");
+            				} else {
+            					console.log("Deberia saltar");
+            					phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            				}}});
+
+
+            	//TODO: Enviar suma
+    
+                return true;
+            }
+        });
+        cc.eventManager.addListener(this._listenerOptions, 1);
 
         //var testing = false;
 
         socket.on('ni-message', function (data) {
         	var userEvent = null;
+        	var userData = JSON.parse(data);
 
-        	if (data == 'getContent'){
+        	if (userData.name == 'getContent'){
         		userEvent = new cc.EventCustom("move_sprite_event");
+        	} else if (userData.name == 'goQuestions'){
+        		userEvent = new cc.EventCustom("moving_to_question");
+        	} else if (userData.name == 'options'){
+        		userEvent = new cc.EventCustom("answer_question");
+        		userEvent.setUserData(userData.extra);
         	}
 
         	cc.eventManager.dispatchEvent(userEvent);
-        /*	if (!testing){
-        		testing = true;
-		    	var event = new cc.EventCustom("move_sprite_event");
-		    	cc.eventManager.dispatchEvent(event);
-		    } else {
-		    	var event = new cc.EventCustom("testeando");
-		    	cc.eventManager.dispatchEvent(event);
-		    }*/
 		});
 
 		this.scheduleUpdate();
