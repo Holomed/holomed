@@ -19,12 +19,16 @@ res/Images/phases/Fase_6_240-279.png,\
 res/Images/phases/Fase_7_280-320.png,\
 res/Images/phases/Fase_8_320.png";
 
+var s_phases_frontal_rotations = 
+	"res/Images/phases/rotations/Fase_1_rot_40.png";
+
 var s_instruction_message = "Recuerde, si desea rotar el feto, alce la mano izquierda.\
 Puede hacerlo las veces que quiera.\
 Si en cambio desea continuar con la siguiente lección,\
 alce la mano derecha";
 
-var s_phases_frontal_sheets = s_phases_frontal.split(',');
+var s_phases_frontal_sheet = s_phases_frontal.split(',');
+var s_phases_frontal_rotations_sheet = s_phases_frontal_rotations.split(',');
 
 var g_resources = [
     //global
@@ -32,7 +36,8 @@ var g_resources = [
     s_pathClose,
 ];
 
-g_resources = g_resources.concat(s_phases_frontal_sheets);
+g_resources = g_resources.concat(s_phases_frontal_sheet);
+g_resources = g_resources.concat(s_phases_frontal_rotations_sheet);
 
 var g_sprites = [
 ];
