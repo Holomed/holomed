@@ -3,6 +3,8 @@
 *
 */
 var mongoose = require('mongoose');
+var async = require('async');
+
 var models = require('./models.js');
 
 function TeacherController(){
@@ -246,10 +248,26 @@ PhaseController.prototype.deleteQuestionFromPhase = function deleteQuestionFromP
 	});
 }
 
+function StudentController(){
+}
+
+StudentController.prototype.sendDataStudent = function sendDataStudent(idStudent, callback){
+	async.waterfall([
+		function(next){
+			next(null, 1);
+		}, function(prevData, next){
+			next(null, 1+prevData);
+		}
+	], callback);
+}
+
+
 teacherController = new TeacherController();
 phaseController = new PhaseController();
+studentController = new StudentController();
 
 module.exports = {
 	'TeacherController': teacherController,
-	'PhaseController': phaseController
+	'PhaseController': phaseController,
+	'StudentController': studentController
 }

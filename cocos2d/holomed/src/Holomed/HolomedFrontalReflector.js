@@ -122,7 +122,7 @@ function getQuestion(actualPhase){
 	var phaseQuestions = questionList[actualPhase];
 	for (var i=0; i < phaseQuestions.length; i++){
 		if (phaseQuestions[i].made == false){
-			return phaseQuestions[i];
+			return {questionNumber: i, question: phaseQuestions[i]};
 		}
 	}
 	return null;
@@ -245,11 +245,11 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             eventName: "moving_to_question",
             callback: function(event){
             	var actualPhase = (getPhase(phaseList)).phaseNumber;
-            	var question = getQuestion(actualPhase);
-            	if (question){ 
+            	var questionObject = getQuestion(actualPhase);
+            	if (questionObject){ 
             		responsiveVoice.speak("Fase de Preguntas", 
             			"Spanish Female", {onend: function(){
-            				responsiveVoice.speak("Pregunta 1: " + question.text, 
+            				responsiveVoice.speak("Pregunta "+ parseInt(questionObject.questionNumber + 1) +": " + questionObject.question.text, 
             					"Spanish Female");
 							
             				//TODO: Notificar que los eventos siguientes son puras opciones
@@ -274,19 +274,20 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             	var userOption = event.getUserData();
 
 				var actualPhase = (getPhase(phaseList)).phaseNumber;
-            	var question = getQuestion(actualPhase);
+            	var questionObject = getQuestion(actualPhase);
             	var answer = 'Incorrecto';
 
-            	if (question.answer == userOption){
+            	if (questionObject.question.answer == userOption){
             		answer = 'Correcto';
             	}
 
+
             	responsiveVoice.speak(answer, 
             			"Spanish Female", {onend: function(){
-            				question.made = true;
-            				var newQuestion = getQuestion(actualPhase);
-            				if (newQuestion){
-            					responsiveVoice.speak(newQuestion.text, 
+            				questionObject.question.made = true;
+            				var newQuestionObject = getQuestion(actualPhase);
+            				if (newQuestionObject){
+            					responsiveVoice.speak("Pregunta "+ parseInt(newQuestionObject.questionNumber + 1) +": " + newQuestionObject.question.text, 
             						"Spanish Female");
             				} else {
             					responsiveVoice.speak("Fin de las preguntas.\

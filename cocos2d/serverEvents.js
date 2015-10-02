@@ -199,12 +199,16 @@ app.post('/action', urlencodedParser, function(req, res) {
 sockets.on('connection', function (socket) {
     console.log('Element connected.');
 
-     // TODO: Desde Base de Datos
-    var fetchDataBase = {"phaseList": [0],//,0,0,0,0,0,0,0],
-    	"questionList": [[{text: '¿Pienso y luego existo?', answer: 'a', made: false}]]//,[],[],[],[],[],[],[]]
-    }
+    // TODO: Modificar metodo
+    controllers.StudentController.sendDataStudent(1, function(){
+		var fetchDataBase = {"phaseList": [0],//,0,0,0,0,0,0,0],
+    	"questionList": [[{text: '¿Pienso y luego existo?', answer: 'a', made: false}, {text: '¿Tienes Panico?', answer: 'a', made: false}]]//,[],[],[],[],[],[],[]]
+    	}
 
-    socket.emit('load-database-data', fetchDataBase);
+    	socket.emit('load-database-data', fetchDataBase);
+    });
+
+     
 
 /*	socket.on('kinect-received', function(data){
 		console.log("Listo Nojoda");
