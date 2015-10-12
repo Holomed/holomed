@@ -17,7 +17,10 @@
 		 </div>
 	</div>
 	<div class="span5 noMarginLeft">
-		<div class="message dark">						
+		<div class="message dark">
+			<div class="header">
+				<h1>Nueva Fase</h1>							
+			</div>						
 			<div class="content">
 				<form id="phaseForm" class="replyForm" method="post" action="/content">
 					<fieldset>
@@ -28,20 +31,23 @@
 						</select>
 						<label for="phaseName">Fase:</label><input id="phaseName" name="phaseName" type="text" value=""/>
 						<label for="prevPhase">Fase Anterior:</label>
-						<select id="prevPhase">
+						<select id="prevPhase" name="prevPhase">
 							<option value="-1">N/A</option>
 						</select>
 						<label for="nextPhase">Fase Siguiente:</label>
-						<select id="nextPhase">
+						<select id="nextPhase" name="nextPhase">
 							<option value="-1">N/A</option>
 						</select>
-						<label for="initSprite">Im&aacute;gen Principal:</label>
-						<select id="initSprite">
-							<option value="-1">N/A</option>
-						</select>
-						<label for="endSprite">Im&aacute;gen Final:</label>
-						<select id="endSprite">
-							<option value="-1">N/A</option>
+						<label for="spriteSheet">Hoja de Sprites:</label>
+						<select id="spriteSheet" name="spriteSheet">
+							<option value="N/A">Seleccione una hoja aqu&iacute;</option>
+							<option value="0">Fase 1</option>
+							<option value="1">Fase 2</option>
+							<option value="2">Fase 3</option>
+							<option value="3">Fase 4</option>
+							<option value="4">Fase 5</option>
+							<option value="5">Fase 6</option>
+							<option value="6">Fase 7</option>
 						</select>
 						<label>Contenido:</label>
 						<textarea tabindex="3" class="input-xlarge span12" id="description" name="description" rows="12"></textarea>
@@ -57,13 +63,27 @@
 {% endblock %}
 {% block scripts %}
 <script>
+	$(function(){
+		$.ajax({
+			url: "getAllPhases",
+			type: "GET",
+			success: function(receivedData){
+				$.each(receivedData, function(i, element){
+					var elementHtml = "<option value='"+ element._id +"'>"+ element.phaseName +"</option>";
+					$("#prevPhase").append(elementHtml);
+					$("#nextPhase").append(elementHtml);
+				});
+			}
+		});
+	});
+
 	$("a#new").click(function(){
+		$(".header").html("<h1>Nueva Fase</h1>");
 		$("#_id").val("undefined");
 		$("#phaseName").val("");
 		$("#prevPhase").val("-1");
 		$("#nextPhase").val("-1");
-		$("#initSprite").val("-1");
-		$("#endSprite").val("-1");
+		$("#spriteSheet").val("-1");
 		$("#description").html("");
 	});
 
@@ -78,8 +98,12 @@
 	            success: function(receivedData){
 		        	console.log(receivedData);
 		        	$("#_id").val(data._id);
+		        	$(".header").html("<h1>Editar Fase</h1>");
 		        	$("#programName").val(receivedData.programName);
 		        	$("#phaseName").val(receivedData.phaseName);
+		        	$("#prevPhase").val(receivedData.prevPhase);
+		        	$("#nextPhase").val(receivedData.nextPhase);
+		        	$("#spriteSheet").val(receivedData.spriteSheet);
 		        	$("textarea").html(receivedData.description);
 	            }            
         });

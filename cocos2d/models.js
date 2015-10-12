@@ -39,11 +39,11 @@ var PhaseSchema = new Schema({
 	programName: String,
 	phaseName: String,
 	phaseID: Number,
-	prevPhase: Number,
-	nextPhase: Number,
-	initSprite: String,
-	endSprite: String,
+	prevPhase: String,
+	nextPhase: String,
+	spriteSheet: String,
 	description: String,
+	created: Date,
 	studentsIn: [{ type : Schema.ObjectId, ref : 'Student' }],
 	questions: [QuestionSchema]
 });

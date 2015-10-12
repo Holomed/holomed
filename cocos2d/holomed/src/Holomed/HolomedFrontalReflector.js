@@ -191,10 +191,10 @@ function runAnimation(sprite, phaseList){
         animateRotate,
         delay);
 
+    console.log(seq);
+
 	sprite.runAction(seq);
 }
-
-var rotateSprite = false;
 
 var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
 

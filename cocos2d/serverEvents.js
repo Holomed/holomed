@@ -165,6 +165,10 @@ app.get('/getPhaseInfo', isAuthenticated, function(req, res){
 	controllers.PhaseController.getPhaseInfo(res, req.query['_id']);
 });
 
+app.get('/getAllPhases', isAuthenticated, function(req, res){
+	controllers.PhaseController.getPhasesByProgramJson(res, 'Parto Eutocico Simple');
+});
+
 app.post('/deletePhase', isAuthenticated, urlencodedParser, function(req, res){
 	controllers.PhaseController.deletePhaseById(req.body, res);
 });
@@ -198,11 +202,13 @@ app.post('/action', urlencodedParser, function(req, res) {
 
 sockets.on('connection', function (socket) {
     console.log('Element connected.');
+    var questionInstructions = 
+    	'Alce la mano derecha si cree que es verdadero, de lo contrario, alce la mano izquierda';
 
     // TODO: Modificar metodo
     controllers.StudentController.sendDataStudent(1, function(){
 		var fetchDataBase = {"phaseList": [0],//,0,0,0,0,0,0,0],
-    	"questionList": [[{text: '¿Pienso y luego existo?', answer: 'a', made: false}, {text: '¿Tienes Panico?', answer: 'a', made: false}]]//,[],[],[],[],[],[],[]]
+    	"questionList": [[{text: '¿El estiramiento del feto contribuye en esta fase?.' + questionInstructions, answer: 'a', made: false}, {text: 'La afirmación: El descenso no es necesario para que se produzca el parto. ¿Es?' + questionInstructions, answer: 'b', made: false}]]//,[],[],[],[],[],[],[]]
     	}
 
     	socket.emit('load-database-data', fetchDataBase);

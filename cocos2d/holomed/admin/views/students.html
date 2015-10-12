@@ -17,7 +17,7 @@
 				  </tr>
 			  </thead>   
 			  <tbody>
-			    {% for student in students %}
+			    {% for x,student in students %}
 				<tr class="student_id" data-id="{{ student.student_id }}">
 					<td class="studentFullName">{{ student.fullName }}</td>
 					<td class="registrationDate center">{{ student.registrationDate }}</td>

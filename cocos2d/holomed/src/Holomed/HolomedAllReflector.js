@@ -51,7 +51,182 @@ var HolomedAllReflector = HolomedBaseLayer.extend({
 
 });
 
+phaseList = [];
+questionList = [];
+totalFrontalAnimFrames = [];
+totalLeftAnimFrames = [];
+totalRightAnimFrames = [];
+
+totalRotationAnimFrames = [];
+
+
 var socket = io.connect('http://127.0.0.1:3000');
+socket.on('load-database-data', function (data){
+	console.log("recibio");
+	phaseList = data.phaseList;
+	questionList = data.questionList;
+	loadUserPhaseAll(phaseList);
+});
+
+//------------------------------------------------------------------
+//
+// HolomedFrontalAnimationLayer:
+// 
+// Es aqui donde se hara la logica de mostrar lo que viene del servidor
+// recibiendo las ordenes y las coordenadas para los eventos respectivos
+//
+//------------------------------------------------------------------
+
+function initTextureCache(resourceDir){
+	var resourceDirSplited = resourceDir.split("/");
+	var resourceName = resourceDirSplited[resourceDirSplited.length-1];
+	var phaseNumber = resourceName.split("_")[1];
+
+	var texture = cc.textureCache.addImage(resourceDir);
+	var width = 512;
+	var height = 300;
+	var frameList = [];
+	var xPos = 0;
+	var yPos = 0;
+
+	if (phaseNumber < 8){
+		for (var i = 0; i < 4; i++){
+			if (i < 3){
+				for (var j = 0; j < 13; j++){
+					frameList.push(new cc.SpriteFrame(texture, cc.rect(xPos, yPos, width, height)));
+					xPos += width;
+				}
+			} else {
+				frameList.push(new cc.SpriteFrame(texture, cc.rect(xPos, yPos, width, height)));
+			}
+			xPos = 0;
+			yPos += height;
+		}
+	} else {
+		frameList.push(new cc.SpriteFrame(texture, cc.rect(xPos, yPos, width, height)));
+	}
+
+	return frameList;
+}
+
+function getPhaseData(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] < 2){
+			return {phaseNumber: i, frontalAnimFrames: totalFrontalAnimFrames[i], 
+				leftAnimFrames: totalLeftAnimFrames[i],
+				rightAnimFrames: totalRightAnimFrames[i],
+				animFramesRotation: totalRotationAnimFrames[i]};
+		}
+	}
+
+	return null;
+}
+
+function getQuestion(actualPhase){
+	var phaseQuestions = questionList[actualPhase];
+	for (var i=0; i < phaseQuestions.length; i++){
+		if (phaseQuestions[i].made == false){
+			return {questionNumber: i, question: phaseQuestions[i]};
+		}
+	}
+	return null;
+}
+
+
+function loadUserPhaseAll(phaseList){
+	var init = (getPhaseData(phaseList)).phaseNumber;
+	console.log("init: "+init);
+	var listSpritesheetFrontalNames = s_phases_frontal.split(",");
+	var listSpritesheetLeftNames = s_phases_left.split(",");
+	var listSpritesheetRightNames = s_phases_right.split(",");
+	var listSpritesheetRotationNames = s_phases_frontal_rotations.split(",");
+	for (var i = init; i < phaseList.length; i++){
+		var frameList = this.initTextureCache(listSpritesheetFrontalNames[i]);
+		totalFrontalAnimFrames.push(frameList);
+		frameList = this.initTextureCache(listSpritesheetLeftNames[i]);
+		totalLeftAnimFrames.push(frameList);
+		frameList = this.initTextureCache(listSpritesheetRightNames[i]);
+		totalRightAnimFrames.push(frameList);
+		// Cambiar cuando se tengan todas las rotaciones
+		if (i == 0){
+			console.log("Entro");
+			var frameListRotation = this.initTextureCache(listSpritesheetRotationNames[i]);
+			totalRotationAnimFrames.push(frameListRotation);
+		}
+	}
+}
+
+function checkEndedPhase(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] == 0){
+			phaseList[i] = 1;
+			break;
+		}
+	}
+	return phaseList;
+}
+
+function checkQuestionsOver(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] == 1){
+			phaseList[i] = 2;
+			break;
+		}
+	}
+	return phaseList;	
+}
+
+function checkLessonOver(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		if (phaseList[i] < 2){
+			return false;
+		}
+	}
+	return true;		
+}
+
+function runAllAnimation(spriteFront, spriteLeft, spriteRight, phaseList){
+	
+	var actualPhase = getPhaseData(phaseList);
+	
+	var frontalAnimFrames = actualPhase.frontalAnimFrames;
+	var leftAnimFrames = actualPhase.leftAnimFrames;
+	var rightAnimFrames = actualPhase.rightAnimFrames;
+
+	var animFramesRotation = actualPhase.animFramesRotation;
+        
+    var frontalAnimation = new cc.Animation(frontalAnimFrames, 0.05);
+    var animateFrontal = cc.animate(frontalAnimation);
+
+    var leftAnimation = new cc.Animation(leftAnimFrames, 0.05);
+    var animateLeft = cc.animate(leftAnimation);
+
+    var rightAnimation = new cc.Animation(rightAnimFrames, 0.05);
+    var animateRight = cc.animate(rightAnimation);
+
+    /*var animationRotate = new cc.Animation(animFramesRotation, 0.1);
+    var animateRotate = cc.animate(animationRotate);
+*/
+    var delay = cc.delayTime(0);
+    var seqFrontal = cc.sequence(animateFrontal,
+        cc.flipX(false),
+        //animateRotate,
+        delay);
+
+    var seqLeft = cc.sequence(animateLeft,
+        cc.flipX(false),
+        //animateRotate,
+        delay);
+
+	var seqRight = cc.sequence(animateRight,
+        cc.flipX(false),
+        //animateRotate,
+        delay);    
+	console.log(seqFrontal);
+	spriteFront.runAction(seqFrontal);
+	spriteLeft.runAction(seqLeft);
+	spriteRight.runAction(seqRight);
+}
 
 //------------------------------------------------------------------
 //
@@ -69,145 +244,150 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
     onEnter:function () {
         this._super();
 
-        var texture = cc.textureCache.addImage(s_baby_rotation);
-        var testTexture = cc.textureCache.addImage(test_size_png);
+        var phase = getPhaseData(phaseList);
+        console.log(phase);
+        var frontalAnimFrames = phase.frontalAnimFrames;
+        var leftAnimFrames = phase.leftAnimFrames;
+        var rightAnimFrames = phase.rightAnimFrames;
+        console.log(frontalAnimFrames);
 
-        var frame0 = new cc.SpriteFrame(texture, cc.rect(159, 0, 353, 279));
-        var frame1 = new cc.SpriteFrame(texture, cc.rect(656, 0, 353, 279));
-        var frame2 = new cc.SpriteFrame(texture, cc.rect(1141, 0, 353, 279));
-        var frame3 = new cc.SpriteFrame(texture, cc.rect(1606, 0, 353, 279));
-        var frame4 = new cc.SpriteFrame(texture, cc.rect(2094, 0, 353, 279));
-        var frame5 = new cc.SpriteFrame(texture, cc.rect(2585, 0, 353, 279));
-        var frame6 = new cc.SpriteFrame(texture, cc.rect(3068, 0, 353, 279));
-        var frame7 = new cc.SpriteFrame(texture, cc.rect(3568, 0, 353, 279));
-        var frame8 = new cc.SpriteFrame(texture, cc.rect(4099, 0, 353, 279));
-        var frame9 = new cc.SpriteFrame(texture, cc.rect(4680, 0, 353, 279));
-        var frame10 = new cc.SpriteFrame(texture, cc.rect(5254, 0, 353, 279));
-        var frame11 = new cc.SpriteFrame(texture, cc.rect(5799, 0, 353, 279));
 
         console.log(winSize.width);
         console.log(winSize.height);
 
-        var spriteFrontal = new cc.Sprite(frame0);
-        //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
+        var spriteFrontal = new cc.Sprite(frontalAnimFrames[0]);
+        
         spriteFrontal.x = winSize.width / 2;
         spriteFrontal.y = (winSize.height / 2) + (winSize.height / 4) - 20;
         spriteFrontal.setScale(0.7);
         spriteFrontal.setRotation(180);
 
 
-        var spriteLeft = new cc.Sprite(frame9);
-        spriteLeft.x = (winSize.width / 2) - (winSize.width / 4) - 45;
-        spriteLeft.y = winSize.height / 2 - 65;
-        spriteLeft.setScale(0.7);
-        spriteLeft.setRotation(90);
-        
-        var spriteRight = new cc.Sprite(frame3);
-        spriteRight.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
+        var spriteRight = new cc.Sprite(rightAnimFrames[0]);
+        spriteRight.x = (winSize.width / 2) - (winSize.width / 4) - 45;
         spriteRight.y = winSize.height / 2 - 65;
         spriteRight.setScale(0.7);
-        spriteRight.setRotation(270);
+        spriteRight.setRotation(90);
+        
+        var spriteLeft = new cc.Sprite(leftAnimFrames[0]);
+        spriteLeft.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
+        spriteLeft.y = winSize.height / 2 - 65;
+        spriteLeft.setScale(0.7);
+        spriteLeft.setRotation(270);
 
         this.addChild(spriteFrontal);
         this.addChild(spriteRight);
         this.addChild(spriteLeft);
+      
+        responsiveVoice.speak(s_instruction_message, 
+            		"Spanish Female");
 
-        var delay = cc.delayTime(0);
-
-        // Llenar el arreglo afuera 
-        var animFramesFrontal = [];
-        animFramesFrontal.push(frame0);
-        animFramesFrontal.push(frame1);
-        animFramesFrontal.push(frame2);
-        animFramesFrontal.push(frame3);
-        animFramesFrontal.push(frame4);
-        animFramesFrontal.push(frame5); 
-        animFramesFrontal.push(frame6); 
-        animFramesFrontal.push(frame7); 
-        animFramesFrontal.push(frame8);
-        animFramesFrontal.push(frame9);
-        animFramesFrontal.push(frame10);
-        animFramesFrontal.push(frame11);
-
-        var animationFrontal = new cc.Animation(animFramesFrontal, 0.2);
-        var animateFrontal = cc.animate(animationFrontal);
-        var seqFrontal = cc.sequence(animateFrontal,
-            cc.flipX(false),
-            animateFrontal.clone(),
-            delay);
-
-
-        var animFramesLeft = [];
-        animFramesLeft.push(frame9);
-        animFramesLeft.push(frame10);
-        animFramesLeft.push(frame11);
-        animFramesLeft.push(frame0);
-        animFramesLeft.push(frame1);
-        animFramesLeft.push(frame2); 
-        animFramesLeft.push(frame3); 
-        animFramesLeft.push(frame4); 
-        animFramesLeft.push(frame5);
-        animFramesLeft.push(frame6);
-        animFramesLeft.push(frame7);
-        animFramesLeft.push(frame8);
-
-        var animationRight = new cc.Animation(animFramesLeft, 0.2);
-        var animateRight = cc.animate(animationRight);
-        var seqRight = cc.sequence(animateRight,
-            cc.flipX(false),
-            animateRight.clone(),
-            delay);
-
-
-        var animFramesRight = [];
-        animFramesRight.push(frame3);
-        animFramesRight.push(frame4);
-        animFramesRight.push(frame5);
-        animFramesRight.push(frame6);
-        animFramesRight.push(frame7);
-        animFramesRight.push(frame8); 
-        animFramesRight.push(frame9); 
-        animFramesRight.push(frame10); 
-        animFramesRight.push(frame11);
-        animFramesRight.push(frame0);
-        animFramesRight.push(frame1);
-        animFramesRight.push(frame2);
-
-        var animationLeft = new cc.Animation(animFramesLeft, 0.2);
-        var animateLeft = cc.animate(animationLeft);
-        var seqLeft = cc.sequence(animateLeft,
-            cc.flipX(false),
-            animateLeft.clone(),
-            delay);
-
-        //this.sprite.runAction(seq.repeatForever());
-        
-        var moving = false;
-
-        this._listener = cc.EventListener.create({
+	    
+        this._listenerExplanation = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
-            	if (!moving){
-                	spriteFrontal.runAction(seqFrontal.repeatForever());
-                	spriteRight.runAction(seqRight.repeatForever());
-                	spriteLeft.runAction(seqLeft.repeatForever());
-                }
-                else{
-                	spriteFrontal.stopAllActions();
-                	spriteRight.stopAllActions();
-                	spriteLeft.stopAllActions();
-                }
-                moving = !moving;
-
+            	if (!checkLessonOver(phaseList)){
+	            	responsiveVoice.speak("Fase de Descenso: Esta fase es indispensable para la salida del feto a través de la pelvis materna. Se \
+produce por la presión resultante de las contracciones uterinas, de la contracción de los músculos abdominales y diafragma maternos, \
+y del estiramiento del feto, tal y como ha venido observando en el objeto proyectado",
+	            		"Spanish Female", {onend: function(){
+	            			runAllAnimation(spriteFrontal, spriteLeft, spriteRight, phaseList);
+	            			phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
+	            			responsiveVoice.speak("Levante la mano izquierda si desea repetir el movimiento, sino, levante la mano derecha", "Spanish Female");
+	            		}});
+            	} else {
+            		responsiveVoice.speak("Fin de la lección. Gracias por usar Holomed", 
+            			"Spanish Female");
+            	}
+    
                 return true;
             }
         });
-        cc.eventManager.addListener(this._listener, 1);
+        cc.eventManager.addListener(this._listenerExplanation, 1);
 
-        socket.on('update', function (data) {
-		    var event = new cc.EventCustom("move_sprite_event");
-		    cc.eventManager.dispatchEvent(event);
+        this._listenerQuestions = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: "moving_to_question",
+            callback: function(event){
+            	var actualPhase = (getPhase(phaseList)).phaseNumber;
+            	var questionObject = getQuestion(actualPhase);
+            	if (questionObject){ 
+            		responsiveVoice.speak("Fase de Preguntas", 
+            			"Spanish Female", {onend: function(){
+            				responsiveVoice.speak("Pregunta "+ parseInt(questionObject.questionNumber + 1) +": " + questionObject.question.text, 
+            					"Spanish Female");
+							
+            				//TODO: Notificar que los eventos siguientes son puras opciones
+            			}});
+            	} else {
+            		responsiveVoice.speak("No tiene ninguna pregunta para esta fase", 
+            			"Spanish Female", {onend: function(){
+            				phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            			}});
+            	}
+            	
+    
+                return true;
+            }
+        });
+        cc.eventManager.addListener(this._listenerQuestions, 1);
+
+        this._listenerOptions = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: "answer_question",
+            callback: function(event){
+            	var userOption = event.getUserData();
+
+				var actualPhase = (getPhase(phaseList)).phaseNumber;
+            	var questionObject = getQuestion(actualPhase);
+            	var answer = 'Incorrecto';
+
+            	if (questionObject.question.answer == userOption){
+            		answer = 'Correcto';
+            	}
+
+
+            	responsiveVoice.speak(answer, 
+            			"Spanish Female", {onend: function(){
+            				questionObject.question.made = true;
+            				var newQuestionObject = getQuestion(actualPhase);
+            				if (newQuestionObject){
+            					responsiveVoice.speak("Pregunta "+ parseInt(newQuestionObject.questionNumber + 1) +": " + newQuestionObject.question.text, 
+            						"Spanish Female");
+            				} else {
+            					responsiveVoice.speak("Fin de las preguntas.\
+            						Por favor levante la mano derecha para continuar con la siguiente fase",
+            						"Spanish Female", {onend: function(){
+            						phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            					}});
+            				}}});
+
+
+            	//TODO: Enviar suma
+    
+                return true;
+            }
+        });
+        cc.eventManager.addListener(this._listenerOptions, 1);
+
+        //var testing = false;
+
+        socket.on('ni-message', function (data) {
+        	var userEvent = null;
+        	var userData = JSON.parse(data);
+        	console.log(userData);
+
+        	if (userData.name == 'getContent'){
+        		userEvent = new cc.EventCustom("move_sprite_event");
+        	} else if (userData.name == 'goQuestions'){
+        		userEvent = new cc.EventCustom("moving_to_question");
+        	} else if (userData.name == 'options'){
+        		userEvent = new cc.EventCustom("answer_question");
+        		userEvent.setUserData(userData.extra);
+        	}
+
+        	cc.eventManager.dispatchEvent(userEvent);
 		});
 
 		this.scheduleUpdate();

@@ -145,7 +145,7 @@ function PhaseController(){
 PhaseController.prototype.getPhasesByProgram = function getPhasesByProgram(page, res, userFullName, programName){
 	var phasesList = [];
 
-	this.Phase.find({ programName: programName }, function(err, phases){
+	this.Phase.find({ programName: programName }).sort("created").exec(function(err, phases){
 		phases.forEach(function(phase) {
 			phase.phase_id = String(phase._id);
       		phasesList.push(phase);
@@ -156,6 +156,19 @@ PhaseController.prototype.getPhasesByProgram = function getPhasesByProgram(page,
 			teacher: userFullName,
 			phases: phases
 		});
+	});
+}
+
+PhaseController.prototype.getPhasesByProgramJson = function getPhasesByProgramJson(res, programName){
+	var phasesList = [];
+
+	this.Phase.find({ programName: programName }, function(err, phases){
+		phases.forEach(function(phase) {
+			phase.phase_id = String(phase._id);
+      		phasesList.push(phase);
+    	});
+
+    	res.json(phasesList);
 	});
 }
 
@@ -170,8 +183,14 @@ PhaseController.prototype.createOrUpdatePhase = function createOrUpdatePhase(req
 			response.redirect('content');
 		});
 	} else {
+		var PhaseModel = this.Phase;
+		request.created = new Date();
+
 		this.Phase.create(request, function(err, phase){
-			response.redirect('content');
+
+			PhaseModel.update({_id: phase.prevPhase}, {nextPhase: phase._id}, function(err, phase){
+				response.redirect('content');
+			});
 		});
 	}
 }

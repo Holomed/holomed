@@ -64,9 +64,23 @@
 				  <div class="control-group">
 					<label class="control-label" for="answer">Respuesta: </label>
 					<div class="controls">
-					  <textarea tabindex="3" class="input-xlarge span12" id="answer" name="answer" rows="9"></textarea>
+					  <select id="answer" name="answer">
+					  	<option selected="selected" value="Verdadero">Verdadero</option>
+					  	<option value="Falso">Falso</option>
+					  </select>
 					</div>
 				  </div>
+				  <!--<div class="control-group">
+					<label class="control-label" for="answer">Puntuaci&oacute;n: </label>
+					<div class="controls">
+					  <select id="answer" name="answer">
+					  	<option selected="selected" value="Verdadero">50</option>
+					  	<option value="Falso">100</option>
+					  	<option value="Falso">150</option>
+					  	<option value="Falso">200</option>
+					  </select>
+					</div>
+				  </div>-->
 				  <div class="form-actions">
 					<button type="submit" class="btn btn-primary">Guardar</button>
 					<button type="button" id="cancelAsk" class="btn">Cancelar</button>
@@ -96,7 +110,7 @@
 		            	var questionHtml = '';
 		     	       	if (receivedData.length > 0){
 		     	       		$(receivedData).each(function(index, question){
-		     	       			questionHtml = '<li class="task info" data-id="'+ question._id +'"><div class="desc"><div class="title">'+ question.text +'</div><div class="answer">'+ question.answer +'</div></div><div class="time"><div class="date"><a href="#"><i class="halflings-icon edit"></i></a><a class="openModal" href="#"><i class="halflings-icon trash"></i></a></div></div></li>';
+		     	       			questionHtml = '<li class="task info" data-id="'+ question._id +'"><div class="desc"><div class="title">'+ question.text +' (50 ptos)</div><div class="answer">'+ question.answer +'</div></div><div class="time"><div class="date"><a href="#"><i class="halflings-icon edit"></i></a><a class="openModal" href="#"><i class="halflings-icon trash"></i></a></div></div></li>';
 		     	       			$(ul).append(questionHtml);
 		     	       		});
 		            	} else {
