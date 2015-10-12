@@ -236,6 +236,8 @@ PhaseController.prototype.createOrUpdateQuestion = function createOrUpdateQuesti
 
 		delete request._id;
 
+		console.log(request);
+
 		phase.questions.push(request);
 
 		phase.save(function(err, phase){

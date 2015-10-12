@@ -31,7 +31,8 @@ TeacherSchema.plugin(passportLocalMongoose);
 
 var QuestionSchema = new Schema({
 	text: String,
-	answer: String
+	answer: String,
+	points: Number
 });
 
 

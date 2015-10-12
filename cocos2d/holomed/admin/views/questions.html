@@ -70,17 +70,17 @@
 					  </select>
 					</div>
 				  </div>
-				  <!--<div class="control-group">
-					<label class="control-label" for="answer">Puntuaci&oacute;n: </label>
+				  <div class="control-group">
+					<label class="control-label" for="points">Puntuaci&oacute;n: </label>
 					<div class="controls">
-					  <select id="answer" name="answer">
-					  	<option selected="selected" value="Verdadero">50</option>
-					  	<option value="Falso">100</option>
-					  	<option value="Falso">150</option>
-					  	<option value="Falso">200</option>
+					  <select id="points" name="points">
+					  	<option selected="selected" value="50">50</option>
+					  	<option value="100">100</option>
+					  	<option value="150">150</option>
+					  	<option value="200">200</option>
 					  </select>
 					</div>
-				  </div>-->
+				  </div>
 				  <div class="form-actions">
 					<button type="submit" class="btn btn-primary">Guardar</button>
 					<button type="button" id="cancelAsk" class="btn">Cancelar</button>
@@ -110,7 +110,7 @@
 		            	var questionHtml = '';
 		     	       	if (receivedData.length > 0){
 		     	       		$(receivedData).each(function(index, question){
-		     	       			questionHtml = '<li class="task info" data-id="'+ question._id +'"><div class="desc"><div class="title">'+ question.text +' (50 ptos)</div><div class="answer">'+ question.answer +'</div></div><div class="time"><div class="date"><a href="#"><i class="halflings-icon edit"></i></a><a class="openModal" href="#"><i class="halflings-icon trash"></i></a></div></div></li>';
+		     	       			questionHtml = '<li class="task info" data-id="'+ question._id +'"><div class="desc"><div class="title">'+ question.text +' (<span class="points">'+ question.points +'<span> ptos)</div><div class="answer">'+ question.answer +'</div></div><div class="time"><div class="date"><a href="#"><i class="halflings-icon edit"></i></a><a class="openModal" href="#"><i class="halflings-icon trash"></i></a></div></div></li>';
 		     	       			$(ul).append(questionHtml);
 		     	       		});
 		            	} else {
@@ -149,7 +149,7 @@
 		$(this).on("click", ".edit", function(){
 			$("h2").html('<i class="halflings-icon white edit"></i><span class="break"></span>Editar Pregunta');
 
-			var liParent = $(this).parentsUntil("ul")[3];
+			 liParent = $(this).parentsUntil("ul")[3];
 			var phaseElement = $(liParent).parent().parent().find(".phase");
 			phaseSelectorOption = "#phase option[value=" + $(phaseElement).attr("data-id") + "]";
 
@@ -162,6 +162,7 @@
 			$("#_id").val($(liParent).attr("data-id"));
 			$("#text").val($(liParent).find(".title").html());
 			$("#answer").val($(liParent).find(".answer").html());
+			$("#points").val($(liParent).find(".title .points").html().split("<")[0])
 
 			$("#row-form").show();
 		});
