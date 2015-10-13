@@ -205,19 +205,24 @@ sockets.on('connection', function (socket) {
     var questionInstructions = 
     	'Alce la mano derecha si cree que es verdadero, de lo contrario, alce la mano izquierda';
 
-    // TODO: Modificar metodo
-    controllers.StudentController.sendDataStudent(1, function(){
-		var fetchDataBase = {"phaseList": [0],//,0,0,0,0,0,0,0],
-    	"questionList": [[{text: '¿El estiramiento del feto contribuye en esta fase?.' + questionInstructions, answer: 'a', made: false}, {text: 'La afirmación: El descenso no es necesario para que se produzca el parto. ¿Es?' + questionInstructions, answer: 'b', made: false}]]//,[],[],[],[],[],[],[]]
+    // TODO: Interfaz para seleccionar estudiante
+    controllers.StudentController.sendDataStudent("561c45d96df930e859afa2d3", function(err, data){
+    	var phaseList = []
+    	var questionList = [];
+
+    	data.forEach(function(phase){
+    		questionList.push(phase.questions);
+
+    		delete phase.questions;
+    		phase.status = 0;
+
+    		phaseList.push(phase);
+    	});
+
+		var fetchDataBase = {"phaseList": phaseList,
+    		"questionList": questionList
     	}
 
     	socket.emit('load-database-data', fetchDataBase);
     });
-
-     
-
-/*	socket.on('kinect-received', function(data){
-		console.log("Listo Nojoda");
-		//socket.broadcast.emit('update-image', 'update!!');
-	});*/
 });

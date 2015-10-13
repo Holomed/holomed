@@ -173,7 +173,7 @@
 
 	function customSelectElement(element){
 		var liParent = $(element).parentsUntil("ul")[2];
-		var phaseElement = $(liParent).parent().parent().find(".phase");
+		var phaseElement = phaseElement = $(liParent).parent().prev("a");
 		questionId = $(liParent).attr("data-id");
 		phaseId = $(phaseElement).attr("data-id");
 	}

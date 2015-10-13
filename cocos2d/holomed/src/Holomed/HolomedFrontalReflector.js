@@ -60,6 +60,7 @@ totalRotationAnimFrames = [];
 
 var socket = io.connect('http://127.0.0.1:3000');
 socket.on('load-database-data', function (data){
+	console.log(data);
 	phaseList = data.phaseList;
 	questionList = data.questionList;
 	loadUserPhase(phaseList);
@@ -109,7 +110,7 @@ function initTextureCache(resourceDir){
 function getPhase(phaseList){
 	console.log(phaseList);
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] < 2){
+		if (phaseList[i].status < 2){
 			return {phaseNumber: i, animFrames: totalAnimFrames[i], 
 					animFramesRotation: totalRotationAnimFrames[i]};
 		}
@@ -147,8 +148,8 @@ function loadUserPhase(phaseList){
 
 function checkEndedPhase(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] == 0){
-			phaseList[i] = 1;
+		if (phaseList[i].status == 0){
+			phaseList[i].status = 1;
 			break;
 		}
 	}
@@ -157,8 +158,8 @@ function checkEndedPhase(phaseList){
 
 function checkQuestionsOver(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] == 1){
-			phaseList[i] = 2;
+		if (phaseList[i].status == 1){
+			phaseList[i].status = 2;
 			break;
 		}
 	}
@@ -167,7 +168,7 @@ function checkQuestionsOver(phaseList){
 
 function checkLessonOver(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] < 2){
+		if (phaseList[i].status < 2){
 			return false;
 		}
 	}
@@ -223,7 +224,7 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             eventName: "move_sprite_event",
             callback: function(event){
             	if (!checkLessonOver(phaseList)){
-	            	responsiveVoice.speak("Contenido de la lección "+ parseInt(getPhase(phaseList).phaseNumber + 1) +".",
+	            	responsiveVoice.speak(phaseList[getPhase(phaseList).phaseNumber].description,
 	            		"Spanish Female", {onend: function(){
 
 	            			runAnimation(sprite, phaseList);

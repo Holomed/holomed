@@ -236,8 +236,6 @@ PhaseController.prototype.createOrUpdateQuestion = function createOrUpdateQuesti
 
 		delete request._id;
 
-		console.log(request);
-
 		phase.questions.push(request);
 
 		phase.save(function(err, phase){
@@ -255,11 +253,13 @@ PhaseController.prototype.getQuestionsByPhase = function getQuestionsByPhase(res
 }
 
 PhaseController.prototype.deleteQuestionFromPhase = function deleteQuestionFromPhase(request, response){
+	console.log(request);
 	var phaseId = mongoose.Types.ObjectId(request.phaseId);
 
 	this.Phase.findOne({_id: phaseId}, function(err, phase){
-		var questionId = mongoose.Types.ObjectId(request.questionId);
-		var question = phase.questions.id(questionId);
+		console.log(phase);
+	//	var questionId = mongoose.Types.ObjectId(request.questionId);
+		var question = phase.questions.id(request.questionId);
 
 		question.remove();
 
@@ -275,9 +275,34 @@ function StudentController(){
 StudentController.prototype.sendDataStudent = function sendDataStudent(idStudent, callback){
 	async.waterfall([
 		function(next){
-			next(null, 1);
-		}, function(prevData, next){
-			next(null, 1+prevData);
+			var _id = mongoose.Types.ObjectId(idStudent);
+			models.Student.find({_id: _id})
+			.populate('_phase')
+			.exec(next);
+
+		}, function(students, next){
+			var student = students[0];
+
+			models.Phase.find({}).sort("created").exec(function(err, phases){
+				var nextPhases = false;
+				var nextPhasesArray = [];
+
+				phases.forEach(function(phase){
+					if (String(phase._id) == String(student._phase._id)){
+						nextPhases = true;
+					}
+
+					if (nextPhases == true){
+						var phaseQuestions = [];
+						phase.questions.forEach(function(question){
+							phaseQuestions.push({text: question.text, answer: question.answer,
+								made: false, points: question.points});
+						});
+						nextPhasesArray.push({description: phase.description, questions: phaseQuestions});
+					}
+				});
+				next(null, nextPhasesArray);
+			});
 		}
 	], callback);
 }

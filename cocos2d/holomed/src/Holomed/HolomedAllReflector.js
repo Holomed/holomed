@@ -111,7 +111,7 @@ function initTextureCache(resourceDir){
 
 function getPhaseData(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] < 2){
+		if (phaseList[i].status < 2){
 			return {phaseNumber: i, frontalAnimFrames: totalFrontalAnimFrames[i], 
 				leftAnimFrames: totalLeftAnimFrames[i],
 				rightAnimFrames: totalRightAnimFrames[i],
@@ -158,8 +158,8 @@ function loadUserPhaseAll(phaseList){
 
 function checkEndedPhase(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] == 0){
-			phaseList[i] = 1;
+		if (phaseList[i].status == 0){
+			phaseList[i].status = 1;
 			break;
 		}
 	}
@@ -168,8 +168,8 @@ function checkEndedPhase(phaseList){
 
 function checkQuestionsOver(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] == 1){
-			phaseList[i] = 2;
+		if (phaseList[i].status == 1){
+			phaseList[i].status = 2;
 			break;
 		}
 	}
@@ -178,7 +178,7 @@ function checkQuestionsOver(phaseList){
 
 function checkLessonOver(phaseList){
 	for (var i = 0; i < phaseList.length; i++){
-		if (phaseList[i] < 2){
+		if (phaseList[i].status < 2){
 			return false;
 		}
 	}
@@ -288,9 +288,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             eventName: "move_sprite_event",
             callback: function(event){
             	if (!checkLessonOver(phaseList)){
-	            	responsiveVoice.speak("Fase de Descenso: Esta fase es indispensable para la salida del feto a través de la pelvis materna. Se \
-produce por la presión resultante de las contracciones uterinas, de la contracción de los músculos abdominales y diafragma maternos, \
-y del estiramiento del feto, tal y como ha venido observando en el objeto proyectado",
+	            	responsiveVoice.speak(phaseList[getPhase(phaseList).phaseNumber].description,
 	            		"Spanish Female", {onend: function(){
 	            			runAllAnimation(spriteFrontal, spriteLeft, spriteRight, phaseList);
 	            			phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
