@@ -8,6 +8,7 @@
 		<table class="table table-condensed">
 			  <thead>
 				  <tr>
+				  	  <th><i class="icon-trophy"></i></th>
 					  <th>Nombre de Estudiante</th>
 					  <th>Fecha de Registro</th>
 					  <th>Programa de Estudio</th>
@@ -19,6 +20,7 @@
 			  <tbody>
 			    {% for x,student in students %}
 				<tr class="student_id" data-id="{{ student.student_id }}">
+					<td>{{ x+1 }}</td>
 					<td class="studentFullName">{{ student.fullName }}</td>
 					<td class="registrationDate center">{{ student.registrationDate }}</td>
 					<td class="center">Parto Eut&oacute;cico Simple</td>

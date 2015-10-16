@@ -65,7 +65,7 @@ TeacherController.prototype.createOrUpdateStudent = function createOrUpdateStude
 
 TeacherController.prototype.getStudents = function getStudents(response, teacher){
 	this.Teacher.findOne({_id: teacher._id})
-	.populate('students')
+	.populate({path: 'students', options: {sort: '-points'}})
 	.exec(function(err, teacher){
 
 		var userFullName = teacher.fullName;
@@ -305,6 +305,40 @@ StudentController.prototype.sendDataStudent = function sendDataStudent(idStudent
 			});
 		}
 	], callback);
+}
+
+StudentController.prototype.sumPoints = function sumPoints(sessionData, callback){
+	async.waterfall([
+		function(next){
+			var _id = mongoose.Types.ObjectId(sessionData.userId);
+			models.Student.find({_id: _id}, function(err, students){
+				var student = students[0];
+
+				if (student.points < sessionData.points){
+					student.points = sessionData.points;
+
+					student.save(function(err){
+						next(null, true);
+					});
+				} else {
+					next(null, false);
+				}
+			});		
+		}
+	], callback);
+}
+
+StudentController.prototype.setActualPhase = function setActualPhase(phase, callback){
+	async.waterfall([
+		function(next){
+			models.Phase.find({phaseName: phase.phaseName})
+			.populate('prevPhase')
+			.exec(next);
+		}, function(actualPhase, next){
+			var prevPhase = actualPhase.prevPhase;
+			console.log(prevPhase);
+		}
+	], callback)
 }
 
 

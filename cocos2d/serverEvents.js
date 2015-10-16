@@ -205,9 +205,11 @@ sockets.on('connection', function (socket) {
     var questionInstructions = 
     	'Alce la mano derecha si cree que es verdadero, de lo contrario, alce la mano izquierda';
 
+	var phaseList = []
+
     // TODO: Interfaz para seleccionar estudiante
-    controllers.StudentController.sendDataStudent("561c45d96df930e859afa2d3", function(err, data){
-    	var phaseList = []
+    var userId = "561c45d96df930e859afa2d3";
+    controllers.StudentController.sendDataStudent(userId, function(err, data){
     	var questionList = [];
 
     	data.forEach(function(phase){
@@ -219,10 +221,27 @@ sockets.on('connection', function (socket) {
     		phaseList.push(phase);
     	});
 
-		var fetchDataBase = {"phaseList": phaseList,
+		var fetchDataBase = {
+			"userId": userId,
+			"phaseList": phaseList,
     		"questionList": questionList
     	}
 
     	socket.emit('load-database-data', fetchDataBase);
     });
+
+    /*socket.on('setActualUserPhase', function (data){
+    	console.log(data);
+    	controllers.StudentController.setActualPhase(phaseList[data.phaseNumber], function(){
+    		console.log("Actualizar vista de examen");
+    	});
+    });*/
+
+    socket.on('addPoints', function (sessionData){
+    	controllers.StudentController.sumPoints(sessionData, function(beatedRecord){
+    		if (beatedRecord){
+    			console.log("Notificacion al administrador de que el record se supero");
+    		}
+    	});
+	});
 });

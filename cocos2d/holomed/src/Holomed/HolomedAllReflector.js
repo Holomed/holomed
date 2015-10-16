@@ -51,6 +51,8 @@ var HolomedAllReflector = HolomedBaseLayer.extend({
 
 });
 
+userId = '';
+userPoints = 0;
 phaseList = [];
 questionList = [];
 totalFrontalAnimFrames = [];
@@ -63,6 +65,7 @@ totalRotationAnimFrames = [];
 var socket = io.connect('http://127.0.0.1:3000');
 socket.on('load-database-data', function (data){
 	console.log("recibio");
+	userId = data.userId;
 	phaseList = data.phaseList;
 	questionList = data.questionList;
 	loadUserPhaseAll(phaseList);
@@ -173,6 +176,9 @@ function checkQuestionsOver(phaseList){
 			break;
 		}
 	}
+
+	//socket.emit('setActualUserPhase', {phaseNumber: i});
+
 	return phaseList;	
 }
 
@@ -295,6 +301,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
 	            			responsiveVoice.speak("Levante la mano izquierda si desea repetir el movimiento, sino, levante la mano derecha", "Spanish Female");
 	            		}});
             	} else {
+            		socket.emit('addPoints', {userId: userId, points: userPoints});
             		responsiveVoice.speak("Fin de la lección. Gracias por usar Holomed", 
             			"Spanish Female");
             	}
@@ -343,6 +350,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
 
             	if (questionObject.question.answer == userOption){
             		answer = 'Correcto';
+            		userPoints += questionObject.question.points;
             	}
 
 

@@ -51,7 +51,7 @@ var HolomedFrontalReflector = HolomedBaseLayer.extend({
 
 });
 
-
+userId = '';
 phaseList = [];
 questionList = [];
 totalAnimFrames = [];
