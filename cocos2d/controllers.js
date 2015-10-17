@@ -298,7 +298,7 @@ StudentController.prototype.sendDataStudent = function sendDataStudent(idStudent
 							phaseQuestions.push({text: question.text, answer: question.answer,
 								made: false, points: question.points});
 						});
-						nextPhasesArray.push({description: phase.description, questions: phaseQuestions});
+						nextPhasesArray.push({_id: String(phase._id), description: phase.description, questions: phaseQuestions});
 					}
 				});
 				next(null, nextPhasesArray);
@@ -328,15 +328,54 @@ StudentController.prototype.sumPoints = function sumPoints(sessionData, callback
 	], callback);
 }
 
-StudentController.prototype.setActualPhase = function setActualPhase(phase, callback){
+StudentController.prototype.setActualPhase = function setActualPhase(studentId, phase, callback){
 	async.waterfall([
 		function(next){
-			models.Phase.find({phaseName: phase.phaseName})
-			.populate('prevPhase')
-			.exec(next);
-		}, function(actualPhase, next){
-			var prevPhase = actualPhase.prevPhase;
-			console.log(prevPhase);
+			var _id = mongoose.Types.ObjectId(phase._id);
+			var _idStudent = mongoose.Types.ObjectId(studentId);
+
+			models.Phase.find({_id: _id})
+			.exec(function(err, phases){
+				phase = phases[0];
+
+				var nextPhase = phase.nextPhase;
+
+				if (nextPhase != -1){
+				
+					phase.studentsIn.forEach(function(element, index){
+						console.log(element);
+						if (element == studentId){
+							phase.studentsIn.splice(index, 1);
+						}
+					});
+
+
+					phase.save(function(err){
+						_id = mongoose.Types.ObjectId(nextPhase);
+						models.Phase.find({_id: _id})
+						.exec(function(err, phases){
+							phase = phases[0];
+							next(null, phase);
+						});
+					});
+				} else {
+					next(null, null);
+				}
+			});
+		}, function(newPhase, next){
+			if (newPhase != null){
+				newPhase.studentsIn.push(studentId);
+				newPhase.save(function(err){
+					_id = mongoose.Types.ObjectId(studentId);
+
+					models.Student.findOne({_id: _id}, function(err, student){
+						student._phase = newPhase._id;
+						student.save(function(err){
+							next(null, student);
+						})
+					})
+				});
+			}
 		}
 	], callback)
 }

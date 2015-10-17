@@ -177,8 +177,6 @@ function checkQuestionsOver(phaseList){
 		}
 	}
 
-	//socket.emit('setActualUserPhase', {phaseNumber: i});
-
 	return phaseList;	
 }
 
@@ -326,6 +324,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             				//TODO: Notificar que los eventos siguientes son puras opciones
             			}});
             	} else {
+            		socket.emit('userPhase', {userPhase: actualPhase});
             		responsiveVoice.speak("No tiene ninguna pregunta para esta fase", 
             			"Spanish Female", {onend: function(){
             				phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
@@ -362,6 +361,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             					responsiveVoice.speak("Pregunta "+ parseInt(newQuestionObject.questionNumber + 1) +": " + newQuestionObject.question.text, 
             						"Spanish Female");
             				} else {
+            					socket.emit('userPhase', {userPhase: actualPhase});
             					responsiveVoice.speak("Fin de las preguntas.\
             						Por favor levante la mano derecha para continuar con la siguiente fase",
             						"Spanish Female", {onend: function(){

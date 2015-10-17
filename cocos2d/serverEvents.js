@@ -208,7 +208,7 @@ sockets.on('connection', function (socket) {
 	var phaseList = []
 
     // TODO: Interfaz para seleccionar estudiante
-    var userId = "561c45d96df930e859afa2d3";
+    var userId = "5621e52c79f8de573662f7cf";
     controllers.StudentController.sendDataStudent(userId, function(err, data){
     	var questionList = [];
 
@@ -230,12 +230,6 @@ sockets.on('connection', function (socket) {
     	socket.emit('load-database-data', fetchDataBase);
     });
 
-    /*socket.on('setActualUserPhase', function (data){
-    	console.log(data);
-    	controllers.StudentController.setActualPhase(phaseList[data.phaseNumber], function(){
-    		console.log("Actualizar vista de examen");
-    	});
-    });*/
 
     socket.on('addPoints', function (sessionData){
     	controllers.StudentController.sumPoints(sessionData, function(beatedRecord){
@@ -244,4 +238,12 @@ sockets.on('connection', function (socket) {
     		}
     	});
 	});
+
+	socket.on('userPhase', function (data){
+    	//	console.log(data);
+    	console.log(phaseList[data.userPhase]);
+    	controllers.StudentController.setActualPhase(userId, phaseList[data.userPhase], function(){
+    		console.log("Actualizar vista de examen");
+    	});
+    });
 });
