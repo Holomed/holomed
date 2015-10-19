@@ -227,9 +227,15 @@ function runAllAnimation(spriteFront, spriteLeft, spriteRight, phaseList){
         //animateRotate,
         delay);    
 	console.log(seqFrontal);
-	spriteFront.runAction(seqFrontal);
-	spriteLeft.runAction(seqLeft);
-	spriteRight.runAction(seqRight);
+	spriteFront.runAction(seqFrontal.repeatForever());
+	spriteLeft.runAction(seqLeft.repeatForever());
+	spriteRight.runAction(seqRight.repeatForever());
+}
+
+function stopAllAnimation(spriteFront, spriteLeft, spriteRight){
+	spriteFront.stopAllActions();
+	spriteLeft.stopAllActions();
+	spriteRight.stopAllActions();
 }
 
 //------------------------------------------------------------------
@@ -292,9 +298,10 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             eventName: "move_sprite_event",
             callback: function(event){
             	if (!checkLessonOver(phaseList)){
+            		runAllAnimation(spriteFrontal, spriteLeft, spriteRight, phaseList);
 	            	responsiveVoice.speak(phaseList[getPhase(phaseList).phaseNumber].description,
 	            		"Spanish Female", {onend: function(){
-	            			runAllAnimation(spriteFrontal, spriteLeft, spriteRight, phaseList);
+	            			stopAllAnimation(spriteFrontal, spriteLeft, spriteRight);
 	            			phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
 	            			responsiveVoice.speak("Levante la mano izquierda si desea repetir el movimiento, sino, levante la mano derecha", "Spanish Female");
 	            		}});
