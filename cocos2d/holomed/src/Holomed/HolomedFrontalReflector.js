@@ -131,10 +131,10 @@ function getQuestion(actualPhase){
 
 
 function loadUserPhase(phaseList){
-	var init = (getPhase(phaseList)).phaseNumber;
+	var init = phaseList[0].phaseNumber;
 	var listSpritesheetNames = s_phases_frontal.split(",");
 	var listSpritesheetRotationNames = s_phases_frontal_rotations.split(",");
-	for (var i = init; i < phaseList.length; i++){
+	for (var i = init; i < (init + phaseList.length); i++){
 		var frameList = this.initTextureCache(listSpritesheetNames[i]);
 		totalAnimFrames.push(frameList);
 		// Cambiar cuando se tengan todas las rotaciones
@@ -189,7 +189,7 @@ function runAnimation(sprite, phaseList){
     var delay = cc.delayTime(0);
     var seq = cc.sequence(animate,
         cc.flipX(false),
-        animateRotate,
+ //       animateRotate,
         delay);
 
     console.log(seq);
@@ -214,27 +214,15 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
 	    sprite.y = winSize.height / 2;
 
 	    this.addChild(sprite);
-
-	    responsiveVoice.speak("Instrucciones Generales", 
-            		"Spanish Female");
-
-	    
+    
         this._listenerExplanation = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
             	if (!checkLessonOver(phaseList)){
-	            	responsiveVoice.speak(phaseList[getPhase(phaseList).phaseNumber].description,
-	            		"Spanish Female", {onend: function(){
-
-	            			runAnimation(sprite, phaseList);
-	            			phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
-			            	
-	            		}});
-            	} else {
-            		responsiveVoice.speak("Fin de la lección. Gracias por usar Holomed", 
-            			"Spanish Female");
-            	}
+					runAnimation(sprite, phaseList);
+	            	phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
+            	} 
     
                 return true;
             }
@@ -247,21 +235,9 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             callback: function(event){
             	var actualPhase = (getPhase(phaseList)).phaseNumber;
             	var questionObject = getQuestion(actualPhase);
-            	if (questionObject){ 
-            		responsiveVoice.speak("Fase de Preguntas", 
-            			"Spanish Female", {onend: function(){
-            				responsiveVoice.speak("Pregunta "+ parseInt(questionObject.questionNumber + 1) +": " + questionObject.question.text, 
-            					"Spanish Female");
-							
-            				//TODO: Notificar que los eventos siguientes son puras opciones
-            			}});
-            	} else {
-            		responsiveVoice.speak("No tiene ninguna pregunta para esta fase", 
-            			"Spanish Female", {onend: function(){
-            				phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
-            			}});
-            	}
-            	
+            	if (!questionObject){ 
+            		phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            	}             	
     
                 return true;
             }
@@ -282,24 +258,11 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
             		answer = 'Correcto';
             	}
 
-
-            	responsiveVoice.speak(answer, 
-            			"Spanish Female", {onend: function(){
-            				questionObject.question.made = true;
-            				var newQuestionObject = getQuestion(actualPhase);
-            				if (newQuestionObject){
-            					responsiveVoice.speak("Pregunta "+ parseInt(newQuestionObject.questionNumber + 1) +": " + newQuestionObject.question.text, 
-            						"Spanish Female");
-            				} else {
-            					responsiveVoice.speak("Fin de las preguntas.\
-            						Por favor levante la mano derecha para continuar con la siguiente fase",
-            						"Spanish Female", {onend: function(){
-            						phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
-            					}});
-            				}}});
-
-
-            	//TODO: Enviar suma
+            	questionObject.question.made = true;
+            	var newQuestionObject = getQuestion(actualPhase);
+            	if (!newQuestionObject){
+            		phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            	}
     
                 return true;
             }

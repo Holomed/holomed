@@ -287,7 +287,7 @@ StudentController.prototype.sendDataStudent = function sendDataStudent(idStudent
 				var nextPhases = false;
 				var nextPhasesArray = [];
 
-				phases.forEach(function(phase){
+				phases.forEach(function(phase, index){
 					if (String(phase._id) == String(student._phase._id)){
 						nextPhases = true;
 					}
@@ -298,7 +298,8 @@ StudentController.prototype.sendDataStudent = function sendDataStudent(idStudent
 							phaseQuestions.push({text: question.text, answer: question.answer,
 								made: false, points: question.points});
 						});
-						nextPhasesArray.push({_id: String(phase._id), description: phase.description, questions: phaseQuestions});
+						nextPhasesArray.push({_id: String(phase._id),
+							phaseNumber: index, description: phase.description, questions: phaseQuestions});
 					}
 				});
 				next(null, nextPhasesArray);
@@ -378,6 +379,42 @@ StudentController.prototype.setActualPhase = function setActualPhase(studentId, 
 			}
 		}
 	], callback)
+}
+
+StudentController.prototype.resetLesson = function resetLesson(idStudent, callback){
+	async.waterfall([
+		function(next){
+			_id = mongoose.Types.ObjectId(idStudent);
+
+			models.Phase.find({}).sort("created").exec(function(err, phases){
+				phase = phases[0];
+
+				models.Student.findOne({_id: _id})
+				.populate('_phase')
+				.exec(function(err, student){
+					var oldPhase = student._phase;
+
+					oldPhase.studentsIn.forEach(function(element, index){
+						console.log(element);
+						if (element == idStudent){
+							oldPhase.studentsIn.splice(index, 1);
+						}
+					});
+
+					oldPhase.save(function(err){
+						student._phase = phase._id;
+						student.save(function(err){
+							phase.studentsIn.push(idStudent);
+							phase.save(function(err){
+								// TODO: Respuesta AJAX
+								next(null, idStudent);
+							});
+						});
+					});
+				});
+			});
+		}], 
+	callback);
 }
 
 

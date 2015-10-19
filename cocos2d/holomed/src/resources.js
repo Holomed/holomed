@@ -40,7 +40,7 @@ res/Images/Spritesheets/Right/Fase_7_280-319.png,\
 res/Images/Spritesheets/Right/Fase_8_320.png";
 
 var s_phases_frontal_rotations = 
-	"res/Images/Spritesheets/Rotations/Fase_1_40.png";
+	"res/Images/Spritesheets/Rotations/Fase_1_40-79.png";
 
 var s_instruction_message = "Recuerde, si desea rotar el feto, alce la mano izquierda.\
 Puede hacerlo las veces que quiera.\

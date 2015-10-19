@@ -77,6 +77,7 @@ var server = app.listen(3000, function() {
 });
 
 var sockets = io.listen(server, { origins: '*:*' });
+var senderSocket = null;
 
 var isAuthenticated = function (req, res, next) {
   if (req.isAuthenticated())
@@ -133,7 +134,7 @@ app.get('/admin', isAuthenticated, function(req, res) {
 
 app.get('/ni', isAuthenticated, function(req, res){
 	exec('python ../holomed-orders.py &', runNI);
-	res.render('index', {teacher: 'Juan Perozo'});  // Cambiar
+	res.redirect('admin');
 });
 
 app.get('/students', isAuthenticated, function(req, res){
@@ -190,8 +191,33 @@ app.post('/deleteQuestionFromPhase', isAuthenticated, urlencodedParser, function
 	controllers.PhaseController.deleteQuestionFromPhase(req.body, res);
 });
 
-app.get('/test', function(req, res) {
-    res.sendFile(path.join(__dirname, 'holomed', 'testyusugomori.html'));
+app.get('/resetLesson', isAuthenticated, function(req, res) {
+    controllers.StudentController.resetLesson(req.query['_id'], function(err, userId){
+    	var phaseList = [];
+
+	    controllers.StudentController.sendDataStudent(userId, function(err, data){
+	    	var questionList = [];
+
+	    	data.forEach(function(phase){
+	    		questionList.push(phase.questions);
+
+	    		delete phase.questions;
+	    		phase.status = 0;
+
+	    		phaseList.push(phase);
+	    	});
+
+			var fetchDataBase = {
+				"userId": userId,
+				"phaseList": phaseList,
+	    		"questionList": questionList
+	    	}
+
+	    	senderSocket.emit('load-database-data', fetchDataBase);
+
+	    	res.redirect('admin');
+	    });
+	});
 });
 
 app.post('/action', urlencodedParser, function(req, res) {
@@ -201,6 +227,8 @@ app.post('/action', urlencodedParser, function(req, res) {
 });
 
 sockets.on('connection', function (socket) {
+	senderSocket = socket;
+
     console.log('Element connected.');
     var questionInstructions = 
     	'Alce la mano derecha si cree que es verdadero, de lo contrario, alce la mano izquierda';

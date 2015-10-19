@@ -137,13 +137,13 @@ function getQuestion(actualPhase){
 
 
 function loadUserPhaseAll(phaseList){
-	var init = (getPhaseData(phaseList)).phaseNumber;
+	var init = phaseList[0].phaseNumber;
 	console.log("init: "+init);
 	var listSpritesheetFrontalNames = s_phases_frontal.split(",");
 	var listSpritesheetLeftNames = s_phases_left.split(",");
 	var listSpritesheetRightNames = s_phases_right.split(",");
 	var listSpritesheetRotationNames = s_phases_frontal_rotations.split(",");
-	for (var i = init; i < phaseList.length; i++){
+	for (var i = init; i < (init + phaseList.length); i++){
 		var frameList = this.initTextureCache(listSpritesheetFrontalNames[i]);
 		totalFrontalAnimFrames.push(frameList);
 		frameList = this.initTextureCache(listSpritesheetLeftNames[i]);
@@ -237,6 +237,8 @@ function stopAllAnimation(spriteFront, spriteLeft, spriteRight){
 	spriteLeft.stopAllActions();
 	spriteRight.stopAllActions();
 }
+
+
 
 //------------------------------------------------------------------
 //
