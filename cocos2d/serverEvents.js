@@ -210,10 +210,12 @@ app.get('/resetLesson', isAuthenticated, function(req, res) {
 			var fetchDataBase = {
 				"userId": userId,
 				"phaseList": phaseList,
-	    		"questionList": questionList
+	    		"questionList": questionList,
+	    		"reset": true
 	    	}
 
-	    	senderSocket.emit('load-database-data', fetchDataBase);
+	    	console.log(senderSocket);
+	    	sockets.emit('reset', fetchDataBase);
 
 	    	res.redirect('admin');
 	    });
@@ -237,6 +239,7 @@ sockets.on('connection', function (socket) {
 
     // TODO: Interfaz para seleccionar estudiante
     var userId = "5621e52c79f8de573662f7cf";
+
     controllers.StudentController.sendDataStudent(userId, function(err, data){
     	var questionList = [];
 
@@ -252,7 +255,8 @@ sockets.on('connection', function (socket) {
 		var fetchDataBase = {
 			"userId": userId,
 			"phaseList": phaseList,
-    		"questionList": questionList
+    		"questionList": questionList,
+    		"reset": false
     	}
 
     	socket.emit('load-database-data', fetchDataBase);

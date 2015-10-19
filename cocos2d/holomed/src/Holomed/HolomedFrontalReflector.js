@@ -59,12 +59,6 @@ totalRotationAnimFrames = [];
 
 
 var socket = io.connect('http://127.0.0.1:3000');
-socket.on('load-database-data', function (data){
-	console.log(data);
-	phaseList = data.phaseList;
-	questionList = data.questionList;
-	loadUserPhase(phaseList);
-});
 
 //------------------------------------------------------------------
 //
@@ -203,6 +197,7 @@ var HolomedFrontalAnimationLayer = HolomedFrontalReflector.extend({
     _num: 0,
     ctor: function (){
     	this._super();
+    	totalAnimFrames = totalFrontalAnimFrames;
     },
     onEnter:function () {
         this._super();

@@ -61,15 +61,37 @@ totalRightAnimFrames = [];
 
 totalRotationAnimFrames = [];
 
+spriteFrontal = '';
+spriteRight = '';
+spriteLeft = '';
 
-var socket = io.connect('http://127.0.0.1:3000');
-socket.on('load-database-data', function (data){
+
+function loadServerData(data){
+	totalFrontalAnimFrames = [];
+	totalLeftAnimFrames = [];
+	totalRightAnimFrames = [];
+
 	console.log("recibio");
 	userId = data.userId;
 	phaseList = data.phaseList;
 	questionList = data.questionList;
 	loadUserPhaseAll(phaseList);
+
+	console.log("Entro a load-database-data");
+}
+
+var socket = io.connect('http://127.0.0.1:3000');
+socket.on('load-database-data', function (data){
+	loadServerData(data);
 });
+
+
+function setNewLesson(phaseList){
+	for (var i = 0; i < phaseList.length; i++){
+		phaseList[i].status = 0
+	}
+	return true;
+}
 
 //------------------------------------------------------------------
 //
@@ -189,6 +211,41 @@ function checkLessonOver(phaseList){
 	return true;		
 }
 
+function initSprites(){
+	var phase = getPhaseData(phaseList);
+    console.log(phase);
+    var frontalAnimFrames = phase.frontalAnimFrames;
+    var leftAnimFrames = phase.leftAnimFrames;
+    var rightAnimFrames = phase.rightAnimFrames;
+    console.log(frontalAnimFrames);
+
+
+    console.log(winSize.width);
+    console.log(winSize.height);
+
+    spriteFrontal = new cc.Sprite(frontalAnimFrames[0]);
+    
+    spriteFrontal.x = winSize.width / 2;
+    spriteFrontal.y = (winSize.height / 2) + (winSize.height / 4) - 20;
+    spriteFrontal.setScale(0.7);
+    spriteFrontal.setRotation(180);
+
+
+    spriteRight = new cc.Sprite(rightAnimFrames[0]);
+    spriteRight.x = (winSize.width / 2) - (winSize.width / 4) - 45;
+    spriteRight.y = winSize.height / 2 - 65;
+    spriteRight.setScale(0.7);
+    spriteRight.setRotation(90);
+    
+    spriteLeft = new cc.Sprite(leftAnimFrames[0]);
+    spriteLeft.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
+    spriteLeft.y = winSize.height / 2 - 65;
+    spriteLeft.setScale(0.7);
+    spriteLeft.setRotation(270);
+
+}
+
+
 function runAllAnimation(spriteFront, spriteLeft, spriteRight, phaseList){
 	
 	var actualPhase = getPhaseData(phaseList);
@@ -256,36 +313,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
     onEnter:function () {
         this._super();
 
-        var phase = getPhaseData(phaseList);
-        console.log(phase);
-        var frontalAnimFrames = phase.frontalAnimFrames;
-        var leftAnimFrames = phase.leftAnimFrames;
-        var rightAnimFrames = phase.rightAnimFrames;
-        console.log(frontalAnimFrames);
-
-
-        console.log(winSize.width);
-        console.log(winSize.height);
-
-        var spriteFrontal = new cc.Sprite(frontalAnimFrames[0]);
-        
-        spriteFrontal.x = winSize.width / 2;
-        spriteFrontal.y = (winSize.height / 2) + (winSize.height / 4) - 20;
-        spriteFrontal.setScale(0.7);
-        spriteFrontal.setRotation(180);
-
-
-        var spriteRight = new cc.Sprite(rightAnimFrames[0]);
-        spriteRight.x = (winSize.width / 2) - (winSize.width / 4) - 45;
-        spriteRight.y = winSize.height / 2 - 65;
-        spriteRight.setScale(0.7);
-        spriteRight.setRotation(90);
-        
-        var spriteLeft = new cc.Sprite(leftAnimFrames[0]);
-        spriteLeft.x = (winSize.width / 2) + (winSize.width / 4) + 45; 
-        spriteLeft.y = winSize.height / 2 - 65;
-        spriteLeft.setScale(0.7);
-        spriteLeft.setRotation(270);
+        initSprites();
 
         this.addChild(spriteFrontal);
         this.addChild(spriteRight);
@@ -388,6 +416,8 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
 
         //var testing = false;
 
+
+
         socket.on('ni-message', function (data) {
         	var userEvent = null;
         	var userData = JSON.parse(data);
@@ -403,6 +433,22 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
         	}
 
         	cc.eventManager.dispatchEvent(userEvent);
+		});
+
+		socket.on('reset', function(data){
+			console.log("Entro reset");
+			loadServerData(data);
+
+			responsiveVoice.speak(s_instruction_message, 
+            		"Spanish Female");
+
+			if (data.reset){
+				console.log("Entro a data.reset");
+				setNewLesson(phaseList);
+				spriteFrontal.setSpriteFrame(totalFrontalAnimFrames[0][0]);
+				spriteRight.setSpriteFrame(totalRightAnimFrames[0][0]);
+				spriteLeft.setSpriteFrame(totalLeftAnimFrames[0][0]);
+			}
 		});
 
 		this.scheduleUpdate();

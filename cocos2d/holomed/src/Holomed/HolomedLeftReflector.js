@@ -66,75 +66,91 @@ var HolomedLeftAnimationLayer = HolomedLeftReflector.extend({
 
     _title:"",
     _num: 0,
+    ctor: function (){
+    	this._super();
+    	totalAnimFrames = totalLeftAnimFrames;
+    },
     onEnter:function () {
         this._super();
-
-        var texture = cc.textureCache.addImage(s_baby_rotation);
+        var animFrames = (getPhase(phaseList)).animFrames;
         
-        var frame0 = new cc.SpriteFrame(texture, cc.rect(1606, 0, 353, 279));
-        var frame1 = new cc.SpriteFrame(texture, cc.rect(2094, 0, 353, 279));
-        var frame2 = new cc.SpriteFrame(texture, cc.rect(2585, 0, 353, 279));
-        var frame3 = new cc.SpriteFrame(texture, cc.rect(3068, 0, 353, 279));
-        var frame4 = new cc.SpriteFrame(texture, cc.rect(3568, 0, 353, 279));
-        var frame5 = new cc.SpriteFrame(texture, cc.rect(4099, 0, 353, 279));
-        var frame6 = new cc.SpriteFrame(texture, cc.rect(4680, 0, 353, 279));
-        var frame7 = new cc.SpriteFrame(texture, cc.rect(5254, 0, 353, 279));
-        var frame8 = new cc.SpriteFrame(texture, cc.rect(5799, 0, 353, 279));
-        var frame9 = new cc.SpriteFrame(texture, cc.rect(159, 0, 353, 279));
-        var frame10 = new cc.SpriteFrame(texture, cc.rect(656, 0, 353, 279));
-        var frame11 = new cc.SpriteFrame(texture, cc.rect(1141, 0, 353, 279));
-        
+		var sprite = new cc.Sprite(animFrames[0]);
 
-        var sprite = new cc.Sprite(frame0);
-        //this.sprite = new cc.Sprite.create(cc.loader.getRes("res/Images/prototipo-2/fly0000.png"));
-        sprite.x = winSize.width / 2;
-        sprite.y = winSize.height / 2;
+	    sprite.x = winSize.width / 2;
+	    sprite.y = winSize.height / 2;
 
-        this.addChild(sprite);
-
-        // Llenar el arreglo afuera 
-        var animFrames = [];
-        animFrames.push(frame0);
-        animFrames.push(frame1);
-        animFrames.push(frame2);
-        animFrames.push(frame3);
-        animFrames.push(frame4);
-        animFrames.push(frame5); 
-        animFrames.push(frame6); 
-        animFrames.push(frame7); 
-        animFrames.push(frame8);
-        animFrames.push(frame9)
-
-        var animation = new cc.Animation(animFrames, 0.2);
-        var animate = cc.animate(animation);
-        var delay = cc.delayTime(0);
-        var seq = cc.sequence(animate,
-            cc.flipX(false),
-            animate.clone(),
-            delay);
-        
-        var moving = false;
-
-        this._listener = cc.EventListener.create({
+	    this.addChild(sprite);
+    
+        this._listenerExplanation = cc.EventListener.create({
             event: cc.EventListener.CUSTOM,
             eventName: "move_sprite_event",
             callback: function(event){
-            	if (!moving){
-                	sprite.runAction(seq.repeatForever());
-                }
-                else{
-                	sprite.stopAllActions();
-                }
-                moving = !moving;
-
+            	if (!checkLessonOver(phaseList)){
+					runAnimation(sprite, phaseList);
+	            	phaseList = checkEndedPhase(phaseList); //Esta es la linea del cambio de fase
+            	} 
+    
                 return true;
             }
         });
-        cc.eventManager.addListener(this._listener, 1);
+        cc.eventManager.addListener(this._listenerExplanation, 1);
 
-        socket.on('update', function (data) {
-		    var event = new cc.EventCustom("move_sprite_event");
-		    cc.eventManager.dispatchEvent(event);
+        this._listenerQuestions = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: "moving_to_question",
+            callback: function(event){
+            	var actualPhase = (getPhase(phaseList)).phaseNumber;
+            	var questionObject = getQuestion(actualPhase);
+            	if (!questionObject){ 
+            		phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            	}             	
+    
+                return true;
+            }
+        });
+        cc.eventManager.addListener(this._listenerQuestions, 1);
+
+        this._listenerOptions = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: "answer_question",
+            callback: function(event){
+            	var userOption = event.getUserData();
+
+				var actualPhase = (getPhase(phaseList)).phaseNumber;
+            	var questionObject = getQuestion(actualPhase);
+            	var answer = 'Incorrecto';
+
+            	if (questionObject.question.answer == userOption){
+            		answer = 'Correcto';
+            	}
+
+            	questionObject.question.made = true;
+            	var newQuestionObject = getQuestion(actualPhase);
+            	if (!newQuestionObject){
+            		phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
+            	}
+    
+                return true;
+            }
+        });
+        cc.eventManager.addListener(this._listenerOptions, 1);
+
+        //var testing = false;
+
+        socket.on('ni-message', function (data) {
+        	var userEvent = null;
+        	var userData = JSON.parse(data);
+
+        	if (userData.name == 'getContent'){
+        		userEvent = new cc.EventCustom("move_sprite_event");
+        	} else if (userData.name == 'goQuestions'){
+        		userEvent = new cc.EventCustom("moving_to_question");
+        	} else if (userData.name == 'options'){
+        		userEvent = new cc.EventCustom("answer_question");
+        		userEvent.setUserData(userData.extra);
+        	}
+
+        	cc.eventManager.dispatchEvent(userEvent);
 		});
 
 		this.scheduleUpdate();
