@@ -191,11 +191,13 @@ app.post('/deleteQuestionFromPhase', isAuthenticated, urlencodedParser, function
 	controllers.PhaseController.deleteQuestionFromPhase(req.body, res);
 });
 
+userId = "5621e52c79f8de573662f7cf";
+
 app.get('/resetLesson', isAuthenticated, function(req, res) {
-    controllers.StudentController.resetLesson(req.query['_id'], function(err, userId){
+    controllers.StudentController.resetLesson(req.query['_id'], function(err, idUser){
     	var phaseList = [];
 
-	    controllers.StudentController.sendDataStudent(userId, function(err, data){
+	    controllers.StudentController.sendDataStudent(idUser, function(err, data){
 	    	var questionList = [];
 
 	    	data.forEach(function(phase){
@@ -208,7 +210,7 @@ app.get('/resetLesson', isAuthenticated, function(req, res) {
 	    	});
 
 			var fetchDataBase = {
-				"userId": userId,
+				"userId": idUser,
 				"phaseList": phaseList,
 	    		"questionList": questionList,
 	    		"reset": true
@@ -222,8 +224,34 @@ app.get('/resetLesson', isAuthenticated, function(req, res) {
 	});
 });
 
+listActions = ['instructions', 'getContent', 'goQuestions', 'options']
+actualAction = 0;
+instructions = false;
+
 app.post('/action', urlencodedParser, function(req, res) {
-    sockets.emit('ni-message', req.body['message']);
+	var message = null;
+	var request = JSON.parse(req.body['message']);
+	if (actualAction < 3){
+		if (request.direction == 'right'){
+			actualAction++; 
+		} 
+		message = {
+			"name": listActions[actualAction]
+		}
+	} else {
+		var answer = 'Verdadero';
+		if (request.direction == 'left'){
+			answer = 'Falso'
+		}
+
+		message = {
+			"name": listActions[actualAction], "extra": answer
+		}
+	}
+
+	console.log(message);
+
+    sockets.emit('ni-message', message);
     console.log("Emitio");
     res.send('Action Received Successfully!');
 });
@@ -237,8 +265,6 @@ sockets.on('connection', function (socket) {
 
 	var phaseList = []
 
-    // TODO: Interfaz para seleccionar estudiante
-    var userId = "5621e52c79f8de573662f7cf";
 
     controllers.StudentController.sendDataStudent(userId, function(err, data){
     	var questionList = [];
@@ -277,5 +303,9 @@ sockets.on('connection', function (socket) {
     	controllers.StudentController.setActualPhase(userId, phaseList[data.userPhase], function(){
     		console.log("Actualizar vista de examen");
     	});
+    });
+
+    socket.on('actualAction', function(data){
+    	actualAction = 0;
     });
 });

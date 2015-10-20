@@ -362,6 +362,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             			}});
             	} else {
             		socket.emit('userPhase', {userPhase: actualPhase});
+            		socket.emit('actualAction', {action: "getContent"});
             		responsiveVoice.speak("No tiene ninguna pregunta para esta fase", 
             			"Spanish Female", {onend: function(){
             				phaseList = checkQuestionsOver(phaseList); //Esta es la linea del fin de preguntas
@@ -399,6 +400,7 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
             						"Spanish Female");
             				} else {
             					socket.emit('userPhase', {userPhase: actualPhase});
+            					socket.emit('actualAction', {action: "getContent"});
             					responsiveVoice.speak("Fin de las preguntas.\
             						Por favor levante la mano derecha para continuar con la siguiente fase",
             						"Spanish Female", {onend: function(){
@@ -418,11 +420,9 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
 
 
 
-        socket.on('ni-message', function (data) {
+        socket.on('ni-message', function (userData) {
         	var userEvent = null;
-        	var userData = JSON.parse(data);
-        	console.log(userData);
-
+        	
         	if (userData.name == 'getContent'){
         		userEvent = new cc.EventCustom("move_sprite_event");
         	} else if (userData.name == 'goQuestions'){
@@ -432,7 +432,12 @@ var HolomedAllAnimationLayer = HolomedAllReflector.extend({
         		userEvent.setUserData(userData.extra);
         	}
 
-        	cc.eventManager.dispatchEvent(userEvent);
+        	if (userEvent){
+        		cc.eventManager.dispatchEvent(userEvent);
+        	} else {
+        		responsiveVoice.speak(s_instruction_message, 
+            		"Spanish Female");
+        	}
 		});
 
 		socket.on('reset', function(data){
